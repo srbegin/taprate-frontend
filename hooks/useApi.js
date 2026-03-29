@@ -10,7 +10,7 @@ export function useApi() {
       if (status !== 'authenticated') throw new Error('Not authenticated')
       const res = await axios({
         method,
-        url: `${process.env.NEXT_PUBLIC_API_URL}${path}`,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/api${path}`,
         data,
         headers: {
           Authorization: `Bearer ${session.access}`,
