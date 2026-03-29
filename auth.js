@@ -7,7 +7,7 @@ const ACCESS_TOKEN_TTL = 55 * 60 * 1000
 async function refreshAccessToken(token) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/token/refresh/`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/token/refresh/`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login/`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login/`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
