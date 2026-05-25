@@ -17,6 +17,7 @@ export default function SurveyWidget({ data, locationUuid }) {
   const [hovered, setHovered] = useState(null)
   const [comment, setComment] = useState('')
   const [email, setEmail] = useState('')
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
 
@@ -25,7 +26,6 @@ export default function SurveyWidget({ data, locationUuid }) {
   // ── Step 1: Rating ──────────────────────────────────────────────
   const handleRatingSelect = (value) => {
     setRating(value)
-    // small delay so the selection is visible before advancing
     setTimeout(() => setStep('details'), 300)
   }
 
@@ -39,7 +39,12 @@ export default function SurveyWidget({ data, locationUuid }) {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rating, comment, email }),
+          body: JSON.stringify({
+            rating,
+            comment,
+            email,
+            marketing_opt_in: marketingOptIn,
+          }),
         }
       )
       const json = await res.json()
@@ -85,7 +90,6 @@ export default function SurveyWidget({ data, locationUuid }) {
       {/* Step: Details */}
       {step === 'details' && (
         <div className="flex flex-col gap-4">
-          {/* Show selected rating as summary */}
           <SelectedRatingSummary
             scaleType={survey.scale_type}
             rating={rating}
@@ -96,7 +100,8 @@ export default function SurveyWidget({ data, locationUuid }) {
           {survey.comments_enabled && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Any comments? <span className="text-gray-400 font-normal">(optional)</span>
+                {survey.comments_prompt || 'Any additional feedback?'}{' '}
+                <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <textarea
                 rows={3}
@@ -110,21 +115,32 @@ export default function SurveyWidget({ data, locationUuid }) {
           )}
 
           {survey.incentive && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email{' '}
-                <span className="text-gray-400 font-normal">
-                  — enter to win: {survey.incentive.prize_text}
+            <div className="flex flex-col gap-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Enter to win:{' '}
+                <span className="font-semibold" style={{ color: accentColor }}>
+                  {survey.incentive.prize_text}
                 </span>
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
+                placeholder="your@email.com (optional)"
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2"
                 style={{ '--tw-ring-color': accentColor }}
               />
+              <label className="flex items-center gap-2 cursor-pointer select-none mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={marketingOptIn}
+                  onChange={(e) => setMarketingOptIn(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-xs text-gray-500">
+                  Sign me up for news and deals
+                </span>
+              </label>
             </div>
           )}
 
@@ -157,21 +173,49 @@ export default function SurveyWidget({ data, locationUuid }) {
 
       {/* Step: Done */}
       {step === 'done' && (
-        <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <div className="flex flex-col items-center gap-4 py-2 text-center">
           {result?.incentive_won ? (
             <>
               <span className="text-5xl">🎉</span>
-              <h2 className="text-xl font-semibold text-gray-900">You won!</h2>
-              <p className="text-sm text-gray-500">
-                Prize: <span className="font-medium text-gray-700">{result.prize_text}</span>
-              </p>
-              <p className="text-xs text-gray-400 mt-1">Check your email for details.</p>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">You won!</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Prize:{' '}
+                  <span className="font-medium text-gray-700">{result.prize_text}</span>
+                </p>
+              </div>
+              {/* Redemption code — prominent display */}
+              <div className="w-full rounded-2xl bg-gray-50 border border-gray-200 py-5 px-4 flex flex-col items-center gap-1">
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+                  Your code
+                </p>
+                <p
+                  className="text-3xl font-bold tracking-widest font-mono"
+                  style={{ color: accentColor }}
+                >
+                  {result.win_code}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Screenshot this screen or write it down. Show it when you redeem your prize.
+                </p>
+              </div>
+
+              {/* Review redirect (shown after win too) */}
+              {survey.review_redirect_enabled && survey.review_redirect_url && (
+                <ReviewCTA url={survey.review_redirect_url} accentColor={accentColor} />
+              )}
             </>
           ) : (
             <>
               <span className="text-5xl">🙏</span>
-              <h2 className="text-xl font-semibold text-gray-900">Thank you!</h2>
-              <p className="text-sm text-gray-500">Your feedback helps us improve.</p>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Thank you!</h2>
+                <p className="text-sm text-gray-500">Your feedback helps us improve.</p>
+              </div>
+
+              {survey.review_redirect_enabled && survey.review_redirect_url && (
+                <ReviewCTA url={survey.review_redirect_url} accentColor={accentColor} />
+              )}
             </>
           )}
         </div>
@@ -181,6 +225,20 @@ export default function SurveyWidget({ data, locationUuid }) {
 }
 
 // ── Sub-components ───────────────────────────────────────────────
+
+function ReviewCTA({ url, accentColor }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="w-full mt-1 flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
+      style={{ borderColor: accentColor, color: accentColor }}
+    >
+      ⭐ Leave us a review
+    </a>
+  )
+}
 
 function RatingScale({ scaleType, rating, hovered, accentColor, onSelect, onHover }) {
   const active = hovered ?? rating

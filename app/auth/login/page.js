@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -15,74 +14,82 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     const result = await signIn('credentials', {
       email: form.email,
       password: form.password,
       redirect: false,
     })
-
     setLoading(false)
-
     if (result?.error) {
       setError('Invalid email or password.')
     } else {
-      router.push('/dashboard')
+      const params = new URLSearchParams(window.location.search)
+      window.location.href = params.get('callbackUrl') || '/dashboard'
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back</h1>
-        <p className="text-sm text-gray-500 mb-6">Sign in to your Cleanpulse account</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#0e0e11] px-4">
+      <div className="w-full max-w-sm">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              placeholder="you@company.com"
-            />
-          </div>
+        {/* Logo / wordmark */}
+        <div className="mb-8 text-center">
+          <span className="text-2xl font-semibold text-white tracking-tight">
+            Tap<span className="text-violet-400">Rate</span>
+          </span>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              placeholder="••••••••"
-            />
-          </div>
+        <div className="bg-[#1a1a1f] border border-white/10 rounded-2xl p-8">
+          <h1 className="text-lg font-semibold text-white mb-1">Welcome back</h1>
+          <p className="text-sm text-white/40 mb-6">Sign in to your account</p>
 
-          {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-white/50 mb-1.5">Email</label>
+              <input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
+                placeholder="you@company.com"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-white/50 mb-1.5">Password</label>
+              <input
+                type="password"
+                required
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white rounded-lg py-2.5 text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+            {error && (
+              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-violet-600 hover:bg-violet-500 text-white rounded-lg py-2.5 text-sm font-medium transition-colors disabled:opacity-50 mt-2"
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-4 text-center text-xs text-white/30">
           No account?{' '}
-          <Link href="/auth/signup" className="text-black font-medium hover:underline">
+          <Link href="/auth/signup" className="text-violet-400 hover:text-violet-300 transition-colors">
             Sign up
           </Link>
         </p>
+
       </div>
     </div>
   )

@@ -7,7 +7,7 @@ const ACCESS_TOKEN_TTL = 55 * 60 * 1000
 async function refreshAccessToken(token) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/token/refresh/`,
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/token/refresh/`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login/`,
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/login/`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -57,6 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: data.user.email,
             name: `${data.user.first_name} ${data.user.last_name}`,
             role: data.user.role,
+            is_staff: data.user.is_staff,
             organization: data.user.organization,
             access: data.tokens.access,
             refresh: data.tokens.refresh,
@@ -69,25 +70,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Session update triggered by client-side update() call
+      if (trigger === 'update' && session?.organization) {
+        token.organization = session.organization
+        return token
+      }
+ 
       // First sign-in — store tokens and set expiry
       if (user) {
         return {
           ...token,
           id: user.id,
           role: user.role,
+          is_staff: user.is_staff,
           organization: user.organization,
           access: user.access,
           refresh: user.refresh,
           accessTokenExpires: Date.now() + ACCESS_TOKEN_TTL,
         }
       }
-
+ 
       // Access token still valid — return as-is
       if (Date.now() < token.accessTokenExpires) {
         return token
       }
-
+ 
       // Token expired — attempt refresh
       return refreshAccessToken(token)
     },
@@ -95,6 +103,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       session.user.id = token.id
       session.user.role = token.role
+      session.user.is_staff = token.is_staff
       session.user.organization = token.organization
       session.access = token.access
       session.refresh = token.refresh

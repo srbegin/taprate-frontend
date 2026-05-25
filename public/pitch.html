@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapRate — Instant Customer Feedback for Local Businesses</title>
+<meta name="description" content="TapRate puts a tap-enabled feedback display at the right moment in your customer's experience. Catch problems before they become bad reviews.">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:          #0d0d10;
+  --ink-2:        #16161a;
+  --ink-3:        #1e1e24;
+  --accent:       #2A6B4F;
+  --accent-mid:   #3a8f68;
+  --accent-light: #5CB88A;
+  --text:         #e8e4de;
+  --text-muted:   #8a857e;
+  --text-dim:     #4a4540;
+  --rule:         rgba(255,255,255,0.07);
+  --rule-light:   rgba(255,255,255,0.04);
+  --warm:         #FAF8F4;
+  --amber:        #C4873A;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ink);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 1000;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── LAYOUT ── */
+.container {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13,13,16,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--warm);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.nav-logo span { color: var(--accent-light); }
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.nav-cta:hover { background: var(--accent-mid); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  padding: 88px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse at center, rgba(42,107,79,0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-bottom: 24px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  color: var(--warm);
+  max-width: 760px;
+  margin-bottom: 24px;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent-light);
+  font-weight: 300;
+}
+
+.hero-sub {
+  font-size: clamp(15px, 2vw, 17px);
+  color: var(--text-muted);
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 13px 28px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(42,107,79,0.35);
+}
+
+.btn-primary:hover {
+  background: var(--accent-mid);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(42,107,79,0.45);
+}
+
+.btn-secondary {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.btn-secondary:hover { color: var(--text); }
+
+/* ── STATS ROW ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-top: 72px;
+}
+
+.stat {
+  background: var(--ink-2);
+  padding: 28px 32px;
+}
+
+.stat-number {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  color: var(--accent-light);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── SECTION SHARED ── */
+section {
+  padding: 88px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.section-eyebrow {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--warm);
+  margin-bottom: 12px;
+}
+
+.section-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 520px;
+  line-height: 1.7;
+}
+
+/* ── HOW IT WORKS ── */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 52px;
+  position: relative;
+}
+
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 22px;
+  left: calc(12.5% + 0px);
+  right: calc(12.5% + 0px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent);
+  opacity: 0.3;
+}
+
+.step-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.step-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.step-card:nth-child(1) .step-badge { background: var(--ink-3); border: 1px solid var(--rule); color: var(--text-muted); }
+.step-card:nth-child(2) .step-badge { background: var(--accent); color: white; box-shadow: 0 4px 16px rgba(42,107,79,0.4); }
+.step-card:nth-child(3) .step-badge { background: #1a3a2b; border: 1px solid rgba(92,184,138,0.2); color: var(--accent-light); }
+.step-card:nth-child(4) .step-badge { background: var(--ink-3); border: 1px solid var(--rule); color: var(--text-muted); }
+
+.step-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--warm);
+  margin-bottom: 8px;
+}
+
+.step-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── USE CASES ── */
+.use-cases-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 52px;
+}
+
+.use-case-card {
+  background: var(--ink-2);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.use-case-card:hover {
+  border-color: rgba(92,184,138,0.2);
+  transform: translateY(-2px);
+}
+
+.use-case-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+}
+
+.use-case-card.green::before { background: linear-gradient(90deg, var(--accent), var(--accent-light)); }
+.use-case-card.amber::before { background: linear-gradient(90deg, #8B5E2A, var(--amber)); }
+
+.use-case-icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.use-case-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--warm);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.use-case-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.tag.green { background: rgba(42,107,79,0.2); color: var(--accent-light); border: 1px solid rgba(92,184,138,0.15); }
+.tag.amber { background: rgba(196,135,58,0.15); color: #e0a060; border: 1px solid rgba(196,135,58,0.2); }
+
+/* ── PILOT / CTA SECTION ── */
+.pilot-section {
+  background: var(--ink-2);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.pilot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.pilot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(42,107,79,0.15);
+  border: 1px solid rgba(92,184,138,0.2);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-bottom: 20px;
+}
+
+.checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.check-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(42,107,79,0.2);
+  border: 1px solid rgba(92,184,138,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--accent-light);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.outcome {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.outcome-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.outcome-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.outcome-text strong {
+  color: var(--text);
+  font-weight: 500;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ── CONTACT CTA ── */
+.contact-section {
+  padding: 88px 0;
+  text-align: center;
+  border-top: 1px solid var(--rule);
+}
+
+.contact-section .section-title {
+  margin: 0 auto 16px;
+  max-width: 560px;
+}
+
+.contact-section .section-sub {
+  margin: 0 auto 40px;
+  max-width: 440px;
+  text-align: center;
+}
+
+.contact-methods {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.contact-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ink-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.contact-email:hover { border-color: rgba(92,184,138,0.3); color: var(--text); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 32px 0;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.footer-logo span { color: var(--accent-light); }
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .steps-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px 0;
+  }
+  .steps-grid::before { display: none; }
+  .use-cases-grid { grid-template-columns: 1fr; }
+  .pilot-grid { grid-template-columns: 1fr; gap: 48px; }
+  .stats { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  nav .nav-cta { display: none; }
+  .hero { padding: 56px 0 56px; }
+  section { padding: 64px 0; }
+  .steps-grid { grid-template-columns: 1fr; gap: 28px; }
+  .step-card { align-items: flex-start; text-align: left; flex-direction: row; gap: 16px; }
+  .step-badge { margin-bottom: 0; flex-shrink: 0; }
+  .hero-actions { flex-direction: column; align-items: flex-start; }
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .contact-section .section-title,
+  .contact-section .section-sub { text-align: left; }
+  .contact-methods { justify-content: flex-start; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">Tap<span>Rate</span></a>
+      <a href="mailto:hello@taprate.app" class="nav-cta">Get in touch →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="container">
+    <div class="hero-eyebrow">Instant Customer Feedback</div>
+    <h1>
+      Tap a card.<br>
+      Hear from customers.<br>
+      <em>Fix it before it costs you.</em>
+    </h1>
+    <p class="hero-sub">
+      TapRate puts a tap-enabled NFC display at the right moment in your customer's experience. One tap or QR scan — no app, no login — and honest feedback lands in your inbox in real time.
+    </p>
+    <div class="hero-actions">
+      <a href="mailto:hello@taprate.app" class="btn-primary">
+        Request a free pilot →
+      </a>
+      <a href="#how-it-works" class="btn-secondary">
+        See how it works ↓
+      </a>
+    </div>
+
+    <div class="stats reveal">
+      <div class="stat">
+        <div class="stat-number">80%</div>
+        <div class="stat-label">of unhappy customers leave without a word — they just don't come back</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">5 sec</div>
+        <div class="stat-label">Average time for a customer to submit feedback with TapRate</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">Free</div>
+        <div class="stat-label">30-day pilot — fully set up at your location, zero cost to start</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="section-eyebrow reveal">How it works</div>
+    <h2 class="section-title reveal">Four steps. Zero friction.</h2>
+    <p class="section-sub reveal">No app for customers to download. No account to create. Just a tap.</p>
+
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-badge">1</div>
+        <div>
+          <div class="step-title">Place the display</div>
+          <div class="step-desc">A branded countertop card or sticker goes where customers naturally pause — checkout, host stand, restroom.</div>
+        </div>
+      </div>
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-badge">2</div>
+        <div>
+          <div class="step-title">Customer taps or scans</div>
+          <div class="step-desc">Phone tap or QR scan opens a simple survey. No app download, no account, no friction.</div>
+        </div>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-badge">3</div>
+        <div>
+          <div class="step-title">You get alerted</div>
+          <div class="step-desc">Low ratings trigger an instant email alert so you can act before it becomes a public complaint.</div>
+        </div>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-badge">4</div>
+        <div>
+          <div class="step-title">Track the trends</div>
+          <div class="step-desc">Your dashboard shows ratings over time — by location, by question, by day — so you can see what's working.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section id="use-cases">
+  <div class="container">
+    <div class="section-eyebrow reveal">Where it fits</div>
+    <h2 class="section-title reveal">Two high-impact touchpoints.</h2>
+    <p class="section-sub reveal">Deploy where the experience matters most — and where problems are hardest to spot without asking.</p>
+
+    <div class="use-cases-grid">
+      <div class="use-case-card green reveal">
+        <span class="use-case-icon">⭐</span>
+        <div class="use-case-title">Overall Customer Experience</div>
+        <div class="use-case-desc">
+          Place a display at checkout, the host stand, or the service counter. Ask a few quick questions about the visit — service, quality, value. Get a real pulse on satisfaction without waiting for a Yelp review to tell you something went wrong.
+        </div>
+        <div class="tags">
+          <span class="tag green">Restaurants</span>
+          <span class="tag green">Salons</span>
+          <span class="tag green">Auto Shops</span>
+          <span class="tag green">Gyms</span>
+          <span class="tag green">Boutiques</span>
+        </div>
+      </div>
+
+      <div class="use-case-card amber reveal reveal-delay-1">
+        <span class="use-case-icon">🚻</span>
+        <div class="use-case-title">Restroom Cleanliness Checks</div>
+        <div class="use-case-desc">
+          A discreet display inside the restroom lets customers flag a problem instantly — before it becomes a health issue, a Google review, or a health department visit. A simple tap is one of the highest-ROI feedback touchpoints in any hospitality business.
+        </div>
+        <div class="tags">
+          <span class="tag amber">Restaurants & Bars</span>
+          <span class="tag amber">Coffee Shops</span>
+          <span class="tag amber">Retail</span>
+          <span class="tag amber">Hotels</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILOT OFFER -->
+<div class="pilot-section">
+  <section id="pilot" style="border-top: none;">
+    <div class="container">
+      <div class="pilot-grid">
+        <div>
+          <div class="pilot-badge reveal">Free Pilot</div>
+          <h2 class="section-title reveal">30 days. Zero risk.<br>Fully set up for you.</h2>
+          <p class="section-sub reveal">I handle everything — display, survey, dashboard. You just watch the feedback come in.</p>
+
+          <ul class="checklist">
+            <li class="reveal">
+              <div class="check-icon">✓</div>
+              Branded NFC display installed at your location
+            </li>
+            <li class="reveal reveal-delay-1">
+              <div class="check-icon">✓</div>
+              Custom survey configured for your business
+            </li>
+            <li class="reveal reveal-delay-2">
+              <div class="check-icon">✓</div>
+              Real-time email alerts when ratings dip
+            </li>
+            <li class="reveal reveal-delay-3">
+              <div class="check-icon">✓</div>
+              Dashboard access to track feedback trends
+            </li>
+            <li class="reveal reveal-delay-4">
+              <div class="check-icon">✓</div>
+              No credit card. No commitment. Cancel anytime.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="section-title reveal" style="font-size: clamp(20px, 3vw, 28px); margin-bottom: 8px;">What you'll walk away with</h3>
+          <p class="section-sub reveal" style="margin-bottom: 0;">After 30 days you'll have real data — and a clear picture of your customer experience.</p>
+
+          <div class="outcomes">
+            <div class="outcome reveal">
+              <div class="outcome-dot"></div>
+              <div class="outcome-text">
+                <strong>A real pulse on your customers</strong>
+                Know what they actually think — not just what the happy ones post on Google.
+              </div>
+            </div>
+            <div class="outcome reveal reveal-delay-1">
+              <div class="outcome-dot"></div>
+              <div class="outcome-text">
+                <strong>An early-warning system</strong>
+                Catch service and cleanliness issues before they become public reviews.
+              </div>
+            </div>
+            <div class="outcome reveal reveal-delay-2">
+              <div class="outcome-dot"></div>
+              <div class="outcome-text">
+                <strong>Real data to coach your team</strong>
+                Specific, timestamped feedback you can actually act on — not vague impressions.
+              </div>
+            </div>
+            <div class="outcome reveal reveal-delay-3">
+              <div class="outcome-dot"></div>
+              <div class="outcome-text">
+                <strong>A system that runs on autopilot</strong>
+                Customers submit, you get notified. No manual follow-up needed.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CONTACT CTA -->
+<div class="contact-section">
+  <div class="container">
+    <div class="section-eyebrow reveal" style="display: block; margin-bottom: 16px;">Get started</div>
+    <h2 class="section-title reveal">Ready to try it?</h2>
+    <p class="section-sub reveal">
+      I'm a local developer based in Rhode Island running a free pilot with a handful of businesses. Reach out and I'll have you set up within a week.
+    </p>
+    <div class="contact-methods reveal">
+      <a href="mailto:hello@taprate.app" class="btn-primary">
+        hello@taprate.app →
+      </a>
+      <a href="mailto:hello@taprate.app" class="contact-email">
+        Request a pilot
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="#" class="footer-logo">Tap<span>Rate</span></a>
+      <div class="footer-copy">Beginnings LLC · Rhode Island</div>
+      <div class="footer-copy">hello@taprate.app</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll-triggered reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible')
+        observer.unobserve(entry.target)
+      }
+    })
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+</script>
+
+</body>
+</html>

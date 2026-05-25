@@ -29,10 +29,13 @@ export default function ClaimTagClient({ tagId }) {
     setSubmitting(true)
     setError('')
     try {
-      await post(`/api/tags/${tagId}/`, { location_id: selectedLocation })
-      // Redirect to the survey to confirm it works
-      const location = locations.find(l => l.id === selectedLocation)
-      router.push(`/s/${selectedLocation}`)
+      // 1. Claim the tag
+      await post(`/tags/${tagId}/`, { location_id: selectedLocation })
+
+      // 2. Mint a session token so the redirect lands on a valid survey URL
+      const { token } = await post(`/tags/${tagId}/session/`, {})
+
+      router.push(`/s/${token}`)
     } catch (e) {
       setError(e?.response?.data?.detail || 'Failed to claim tag.')
       setSubmitting(false)

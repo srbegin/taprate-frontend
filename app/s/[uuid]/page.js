@@ -1,11 +1,10 @@
 // app/s/[uuid]/page.js
-import { notFound } from 'next/navigation'
 import SurveyClient from '@/components/survey/SurveyClient'
 
-async function getSurveyData(uuid) {
+async function getSurveyData(token) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/survey/${uuid}/`,
+      `${process.env.NEXT_PUBLIC_API_URL}/survey/${token}/`,
       { cache: 'no-store' }
     )
     if (!res.ok) return null
@@ -19,16 +18,17 @@ export default async function SurveyPage({ params }) {
   const { uuid } = await params
   const data = await getSurveyData(uuid)
 
-  if (!data) notFound()
-
-  return <SurveyClient locationUuid={uuid} data={data} />
+  // Don't hard-404 — an expired/consumed token should show a friendly screen
+  return <SurveyClient sessionToken={uuid} data={data} />
 }
 
 export async function generateMetadata({ params }) {
   const { uuid } = await params
   const data = await getSurveyData(uuid)
   return {
-    title: data ? `${data.org_name} — Rate Your Experience` : 'Survey',
-    description: data?.question || 'Share your feedback',
+    title: data?.location_name
+      ? `${data.location_name} — Rate Your Experience`
+      : 'Survey',
+    description: data?.survey?.questions?.[0]?.question || 'Share your feedback',
   }
 }

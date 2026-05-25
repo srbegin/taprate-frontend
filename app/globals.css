@@ -24,3 +24,34 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* ── Prevent iOS Safari auto-zoom on input focus ─────────────────────────────
+   iOS zooms in whenever an input has font-size < 16px. This overrides Tailwind's
+   text-sm (14px) on all form elements site-wide. The zoom is jarring on a form
+   that should feel like a native app. */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+ 
+/* ── Use small viewport height for full-screen pages ─────────────────────────
+   100svh = viewport height minus browser chrome (address bar, tab bar).
+   100vh on mobile counts the full screen including the address bar, so content
+   gets clipped under it. svh uses the *visible* viewport instead.
+   Falls back gracefully on older browsers that don't support svh. */
+.full-screen-page {
+  min-height: 100svh;
+  min-height: 100vh; /* fallback — svh overrides this in supporting browsers */
+}
+ 
+/* ── Smooth scroll behaviour ─────────────────────────────────────────────────
+   Prevents the rubber-band bounce from feeling out of place. */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%; /* prevent font scaling in landscape on iOS */
+}
+ 

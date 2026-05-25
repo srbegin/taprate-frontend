@@ -1,65 +1,94 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { Zap } from 'lucide-react'
 
-export default function Home() {
+export const metadata = {
+  title: 'TapRate — NFC-powered customer feedback',
+  description: 'Deploy NFC stickers at your locations. Customers tap to rate. You get real-time insights.',
+}
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-[#0e0e11] text-white flex flex-col">
+
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-6 py-5 max-w-5xl mx-auto w-full">
+        <div className="flex items-center gap-2">
+          <Zap size={16} className="text-violet-400" />
+          <span className="font-semibold text-sm tracking-tight">TapRate</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <Link
+          href="/auth/login"
+          className="text-sm text-white/50 hover:text-white transition-colors"
+        >
+          Sign in
+        </Link>
+      </nav>
+
+      {/* Hero */}
+      <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
+
+        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 text-xs text-violet-400 mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+          NFC-powered feedback
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight max-w-2xl leading-[1.1] mb-6">
+          Customer feedback,{' '}
+          <span className="text-violet-400">one tap</span>{' '}
+          away
+        </h1>
+
+        <p className="text-white/50 text-base sm:text-lg max-w-md leading-relaxed mb-12">
+          Place NFC stickers at your locations. Customers tap to rate their experience.
+          You get real-time alerts and insights — no app required.
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          
+          <a href="mailto:hello@taprate.app?subject=I'm interested in TapRate"
+            className="px-6 py-3 bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto text-center"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            Get in touch
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/dashboard"
+            className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto text-center"
           >
-            Documentation
+            Go to dashboard →
+          </Link>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="border-t border-white/5 px-6 py-16">
+        <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+          {[
+            { step: '01', title: 'Stick', body: 'Place NFC tags at your locations — counters, tables, doors.' },
+            { step: '02', title: 'Tap', body: 'Customers tap with their phone. No app, no friction, instant survey.' },
+            { step: '03', title: 'Know', body: 'Get alerted on low ratings. Track trends. Respond faster.' },
+          ].map(({ step, title, body }) => (
+            <div key={step} className="flex flex-col items-center gap-3">
+              <span className="text-xs font-mono text-violet-400/60">{step}</span>
+              <h3 className="text-sm font-semibold text-white">{title}</h3>
+              <p className="text-sm text-white/40 leading-relaxed">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 px-6 py-6">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <span className="text-xs text-white/20">© {new Date().getFullYear()} TapRate</span>
+          
+           <a href="mailto:hello@taprate.app"
+            className="text-xs text-white/20 hover:text-white/50 transition-colors"
+          >
+            hello@taprate.app
           </a>
         </div>
-      </main>
-    </div>
-  );
+      </footer>
+
+    </main>
+  )
 }
