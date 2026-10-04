@@ -98,6 +98,12 @@ export default function SignupPage() {
               {loading ? 'Creating account…' : 'Create account'}
             </button>
           </form>
+          <p className="text-xs text-zinc-500 text-center mt-4">
+            By creating an account, you agree to our{' '}
+            <a href="/terms" className="text-violet-400 hover:text-violet-300">Terms</a>{' '}
+            and{' '}
+            <a href="/privacy" className="text-violet-400 hover:text-violet-300">Privacy Policy</a>.
+          </p>
         </div>
 
         <p className="mt-4 text-center text-xs text-white/30">

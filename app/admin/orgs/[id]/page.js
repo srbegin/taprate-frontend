@@ -67,23 +67,23 @@ function SectionPlaceholder({ title, description }) {
 function TagsSection({ orgId }) {
   const [orgTags,          setOrgTags]          = useState(null);
   const [unowned,          setUnowned]          = useState(null);
-  const [orgLocations,     setOrgLocations]     = useState(null); // all org locations with has_tag
-  const [selectedLocation, setSelectedLocation] = useState('');   // location id chosen in assign panel
+  const [orgLocations,     setOrgLocations]     = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [tagSearch,        setTagSearch]        = useState('');
-  const [assigning,        setAssigning]        = useState(null); // tag id mid-assign
+  const [assigning,        setAssigning]        = useState(null);
   const [confirming,       setConfirming]       = useState(new Set());
   const [releasing,        setReleasing]        = useState(new Set());
 
   const loadOrgTags = useCallback(() => {
-    api.get(`/admin/orgs/${orgId}/tags/`).then(r => setOrgTags(r.data));
+    api.get(`/admin/orgs/${orgId}/tags/`).then(r => setOrgTags(r.data.items ?? []));
   }, [orgId]);
 
   const loadUnowned = useCallback(() => {
-    api.get('/admin/tags/?status=unclaimed').then(r => setUnowned(r.data));
+    api.get('/admin/tags/?status=unclaimed').then(r => setUnowned(r.data.items ?? []));
   }, []);
 
   const loadOrgLocations = useCallback(() => {
-    api.get(`/admin/orgs/${orgId}/locations/`).then(r => setOrgLocations(r.data));
+    api.get(`/admin/orgs/${orgId}/locations/`).then(r => setOrgLocations(r.data.items ?? []));
   }, [orgId]);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ function TagsSection({ orgId }) {
 
   // ── Assign tag → location ──────────────────────────────────────────────────
   const handleAssign = async (tagId) => {
-    if (!selectedLocation) return; // shouldn't be reachable but guard anyway
+    if (!selectedLocation) return;
     setAssigning(tagId);
     try {
       const res = await api.post(`/admin/orgs/${orgId}/tags/`, {
@@ -136,7 +136,6 @@ function TagsSection({ orgId }) {
       setOrgTags(prev => prev.filter(t => t.id !== tagId));
       setUnowned(prev => [{ id: tagId, created_at: released?.created_at }, ...(prev ?? [])]);
 
-      // Mark the location as available again in the assign panel
       if (released?.location_id) {
         setOrgLocations(prev => prev?.map(l =>
           l.id === released.location_id ? { ...l, has_tag: false } : l

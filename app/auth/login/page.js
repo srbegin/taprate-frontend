@@ -1,11 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -56,7 +54,15 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1.5">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-medium text-white/50">Password</label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 required
@@ -89,6 +95,10 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
+        <div className="text-xs text-zinc-500 text-center mt-6 flex justify-center gap-4">
+          <a href="/terms" className="hover:text-zinc-300">Terms</a>
+          <a href="/privacy" className="hover:text-zinc-300">Privacy</a>
+        </div>
 
       </div>
     </div>

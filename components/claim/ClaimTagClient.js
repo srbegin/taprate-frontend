@@ -10,16 +10,21 @@ export default function ClaimTagClient({ tagId }) {
   const { ready, get, post } = useApi()
   const router = useRouter()
 
-  const [locations, setLocations] = useState([])
+  const [locations,        setLocations]        = useState([])
+  const [atLimit,          setAtLimit]          = useState(false)
   const [selectedLocation, setSelectedLocation] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [submitting,       setSubmitting]       = useState(false)
+  const [error,            setError]            = useState('')
   const [loadingLocations, setLoadingLocations] = useState(true)
+
 
   useEffect(() => {
     if (!ready) return
     get('/dashboard/locations/')
-      .then(setLocations)
+      .then((res) => {
+        setLocations(res.items ?? [])
+        setAtLimit(res.meta?.at_limit ?? false)
+      })
       .catch(() => setError('Failed to load locations.'))
       .finally(() => setLoadingLocations(false))
   }, [ready]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -29,13 +34,8 @@ export default function ClaimTagClient({ tagId }) {
     setSubmitting(true)
     setError('')
     try {
-      // 1. Claim the tag
       await post(`/tags/${tagId}/`, { location_id: selectedLocation })
-
-      // 2. Mint a session token so the redirect lands on a valid survey URL
-      const { token } = await post(`/tags/${tagId}/session/`, {})
-
-      router.push(`/s/${token}`)
+      router.push(`/s/${selectedLocation}`)
     } catch (e) {
       setError(e?.response?.data?.detail || 'Failed to claim tag.')
       setSubmitting(false)
@@ -63,11 +63,34 @@ export default function ClaimTagClient({ tagId }) {
     )
   }
 
-  // Loading session
+  // Loading session or locations
   if (status === 'loading' || loadingLocations) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // At location limit — can't assign
+  if (atLimit) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="text-4xl mb-4">📡</div>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Location limit reached</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            You've used all the locations on your current plan. Upgrade to add more locations
+            and assign this tag.
+          </p>
+          
+          <a href="/dashboard/billing"
+            className="block w-full bg-gray-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-gray-800 transition-colors text-center"
+          >
+            Upgrade plan
+          </a>
+          
+        </div>
       </div>
     )
   }

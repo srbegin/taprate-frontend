@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 
-const TABS = ['Overview', 'Organizations', 'Tags', 'Signups'];
+const TABS = ['Overview', 'Organizations', 'Tags', 'Signups', 'Contacts'];
 
 function StatCard({ label, value, sub }) {
   return (
@@ -110,7 +110,7 @@ function OrganizationsTab() {
   const [rows, setRows] = useState(null);
 
   useEffect(() => {
-    api.get('/admin/organizations/').then(r => setRows(r.data));
+    api.get('/admin/organizations/').then(r => setRows(r.data.items ?? []));
   }, []);
 
   const cols = [
@@ -131,9 +131,7 @@ function OrganizationsTab() {
     {
       key: '_arrow',
       label: '',
-      render: () => (
-        <span className="text-white/20 text-xs">→</span>
-      ),
+      render: () => <span className="text-white/20 text-xs">→</span>,
     },
   ];
 
@@ -149,13 +147,13 @@ function OrganizationsTab() {
 }
 
 function TagsTab() {
-  const [rows, setRows]       = useState(null);
-  const [filter, setFilter]   = useState('all');
+  const [rows, setRows]             = useState(null);
+  const [filter, setFilter]         = useState('all');
   const [confirming, setConfirming] = useState(new Set());
   const [releasing, setReleasing]   = useState(new Set());
 
   useEffect(() => {
-    api.get('/admin/tags/').then(r => setRows(r.data));
+    api.get('/admin/tags/').then(r => setRows(r.data.items ?? []));
   }, []);
 
   const handleRelease = (tagId) => {
@@ -172,9 +170,7 @@ function TagsTab() {
     try {
       await api.post(`/admin/tags/${tagId}/release/`);
       setRows(prev => {
-        if (filter === 'claimed') {
-          return prev.filter(r => r.id !== tagId);
-        }
+        if (filter === 'claimed') return prev.filter(r => r.id !== tagId);
         return prev.map(r => r.id === tagId
           ? { ...r, claimed: false, org_name: null, location_name: null, claimed_at: null }
           : r
@@ -227,13 +223,13 @@ function TagsTab() {
           return (
             <span className="flex items-center gap-2">
               <button
-                onClick={() => handleConfirm(tagId)}
+                onClick={e => { e.stopPropagation(); handleConfirm(tagId); }}
                 className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
               >
                 Confirm
               </button>
               <button
-                onClick={() => handleCancel(tagId)}
+                onClick={e => { e.stopPropagation(); handleCancel(tagId); }}
                 className="text-xs text-white/30 hover:text-white/60 transition-colors"
               >
                 Cancel
@@ -243,7 +239,7 @@ function TagsTab() {
         }
         return (
           <button
-            onClick={() => handleRelease(tagId)}
+            onClick={e => { e.stopPropagation(); handleRelease(tagId); }}
             className="text-xs text-white/30 hover:text-red-400 transition-colors"
           >
             Release
@@ -288,12 +284,14 @@ function SignupsTab() {
   const [view, setView] = useState('orgs');
 
   useEffect(() => {
+    // AdminRecentSignupsView is intentionally not converted to {items, meta} —
+    // it returns a compound object with two named lists.
     api.get('/admin/signups/').then(r => setData(r.data));
   }, []);
 
   const orgCols = [
     { key: 'name',       label: 'Organization' },
-    { key: 'plan',       label: 'Plan',    render: v => <Badge value={v} /> },
+    { key: 'plan',       label: 'Plan',      render: v => <Badge value={v} /> },
     { key: 'created_at', label: 'Signed up', render: fmt },
   ];
 
@@ -328,6 +326,210 @@ function SignupsTab() {
           ? <Table cols={orgCols}  rows={data.recent_orgs}  empty="No organizations yet." />
           : <Table cols={userCols} rows={data.recent_users} empty="No users yet." />
       }
+    </div>
+  );
+}
+
+// ── Contacts tab ─────────────────────────────────────────────────────────────
+
+const CONTACT_STATUS_COLOURS = {
+  new:       'bg-violet-500/20 text-violet-300',
+  contacted: 'bg-blue-500/20 text-blue-300',
+  converted: 'bg-emerald-500/20 text-emerald-300',
+  declined:  'bg-white/10 text-white/40',
+  spam:      'bg-red-500/20 text-red-300',
+};
+
+function ContactBadge({ value }) {
+  const cls = CONTACT_STATUS_COLOURS[value] ?? CONTACT_STATUS_COLOURS.new;
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${cls}`}>
+      {value}
+    </span>
+  );
+}
+
+function ContactsTab() {
+  const [rows, setRows]                     = useState(null);
+  const [total, setTotal]                   = useState(0);
+  const [statusFilter, setStatusFilter]     = useState('');
+  const [selected, setSelected]             = useState(null);
+  const [editStatus, setEditStatus]         = useState('');
+  const [editNotes, setEditNotes]           = useState('');
+  const [saving, setSaving]                 = useState(false);
+
+  const load = useCallback(() => {
+    const qs = statusFilter ? `?status=${statusFilter}` : '';
+    api.get(`/admin/contacts/${qs}`).then(r => {
+      setRows(r.data.results ?? []);
+      setTotal(r.data.total ?? 0);
+    });
+  }, [statusFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openDetail = (row) => {
+    setSelected(row);
+    setEditStatus(row.status);
+    setEditNotes(row.notes ?? '');
+  };
+
+  const saveDetail = async () => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const { data } = await api.patch(`/admin/contacts/${selected.id}/`, {
+        status: editStatus,
+        notes:  editNotes,
+      });
+      setSelected(data);
+      setRows(prev => prev.map(r => r.id === data.id ? data : r));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cols = [
+    {
+      key: 'status',
+      label: 'Status',
+      render: v => <ContactBadge value={v} />,
+    },
+    {
+      key: 'business_name',
+      label: 'Business',
+      render: v => <span className="text-white font-medium">{v}</span>,
+    },
+    { key: 'name',           label: 'Contact' },
+    { key: 'email',          label: 'Email' },
+    { key: 'location_count', label: 'Locations' },
+    { key: 'submitted_at',   label: 'Submitted', render: fmt },
+    {
+      key: '_arrow',
+      label: '',
+      render: () => <span className="text-white/20 text-xs">→</span>,
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Filter bar */}
+      <div className="flex items-center gap-2">
+        {['', 'new', 'contacted', 'converted', 'declined', 'spam'].map(s => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors capitalize ${
+              statusFilter === s
+                ? 'bg-violet-600 border-violet-600 text-white'
+                : 'border-white/10 text-white/50 hover:text-white'
+            }`}
+          >
+            {s || 'All'}
+          </button>
+        ))}
+        {rows && (
+          <span className="ml-auto text-xs text-white/30 self-center">
+            {total} total
+          </span>
+        )}
+      </div>
+
+      {!rows
+        ? <p className="text-white/30 text-sm py-8 text-center">Loading…</p>
+        : <Table
+            cols={cols}
+            rows={rows}
+            empty="No contact submissions yet."
+            onRowClick={openDetail}
+          />
+      }
+
+      {/* Detail modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
+          onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}
+        >
+          <div className="bg-[#1a1a1f] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <div>
+                <p className="text-base font-semibold text-white">{selected.business_name}</p>
+                <p className="text-xs text-white/40 mt-0.5">{selected.name} · {selected.email}</p>
+              </div>
+              <button
+                onClick={() => setSelected(null)}
+                className="text-white/30 hover:text-white/70 text-xl leading-none transition-colors"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Meta grid */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                {[
+                  ['Phone',     selected.phone || '—'],
+                  ['Locations', selected.location_count],
+                  ['Submitted', fmt(selected.submitted_at)],
+                  ['Contacted', fmt(selected.contacted_at)],
+                  ['IP',        selected.ip_address || '—'],
+                ].map(([label, val]) => (
+                  <div key={label}>
+                    <p className="text-xs text-white/35 mb-0.5">{label}</p>
+                    <p className="text-white/75">{val}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Message */}
+              {selected.message && (
+                <div>
+                  <p className="text-xs text-white/35 mb-1.5">Message</p>
+                  <p className="text-sm text-white/65 leading-relaxed bg-white/[0.03] border border-white/[0.07] rounded-xl px-4 py-3">
+                    {selected.message}
+                  </p>
+                </div>
+              )}
+
+              {/* Status */}
+              <div>
+                <label className="block text-xs text-white/35 mb-1.5">Status</label>
+                <select
+                  value={editStatus}
+                  onChange={e => setEditStatus(e.target.value)}
+                  className="w-full bg-white/[0.05] border border-white/10 text-sm text-white/80 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500/40"
+                >
+                  {['new', 'contacted', 'converted', 'declined', 'spam'].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-xs text-white/35 mb-1.5">Internal notes</label>
+                <textarea
+                  value={editNotes}
+                  onChange={e => setEditNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Add notes…"
+                  className="w-full bg-white/[0.05] border border-white/10 text-sm text-white/80 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500/40 resize-none placeholder:text-white/20"
+                />
+              </div>
+
+              <button
+                onClick={saveDetail}
+                disabled={saving}
+                className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+              >
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -372,6 +574,7 @@ export default function AdminPage() {
           {activeTab === 'Organizations' && <OrganizationsTab />}
           {activeTab === 'Tags'          && <TagsTab />}
           {activeTab === 'Signups'       && <SignupsTab />}
+          {activeTab === 'Contacts'      && <ContactsTab />}
         </div>
 
       </div>

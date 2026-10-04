@@ -19,13 +19,13 @@ export default function IncentivesPage() {
     let cancelled = false
     async function load() {
       try {
-        const [inc, surveyList] = await Promise.all([
+        const [incRes, surveysRes] = await Promise.all([
           get('/dashboard/incentives/'),
           get('/dashboard/surveys/'),
         ])
         if (!cancelled) {
-          setIncentives(inc)
-          setSurveys(surveyList)
+          setIncentives(incRes.items ?? [])
+          setSurveys(surveysRes.items ?? [])
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -54,7 +54,7 @@ export default function IncentivesPage() {
       survey: surveyId || null,
     })
     const fresh = await get('/dashboard/incentives/')
-    setIncentives(fresh)
+    setIncentives(fresh.items ?? [])
     setAssigningId(null)
   }
 

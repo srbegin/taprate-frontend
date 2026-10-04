@@ -1,5 +1,5 @@
 // app/qr/[locationId]/page.js
-import { redirect, notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
 async function mintSession(locationId) {
   try {
@@ -21,6 +21,6 @@ async function mintSession(locationId) {
 export default async function QrPage({ params }) {
   const { locationId } = await params
   const data = await mintSession(locationId)
-  if (!data?.token) notFound()
+  if (!data?.token) redirect('/survey-unavailable')
   redirect(`/s/${data.token}`)
 }

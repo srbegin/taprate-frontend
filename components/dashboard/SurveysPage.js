@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useApi } from '@/hooks/useApi'
-import { Plus, Trash2, ClipboardList, ChevronRight } from 'lucide-react'
+import { Plus, ClipboardList, ChevronRight, Gift } from 'lucide-react'
 import SurveyBuilderModal from './SurveyBuilderModal'
 
 export default function SurveysPage() {
   const { ready, get, delete: del } = useApi()
-  const [surveys, setSurveys] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [surveys, setSurveys]     = useState([])
+  const [loading, setLoading]     = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
+  const [editing, setEditing]     = useState(null)
 
   useEffect(() => {
     if (!ready) return
@@ -18,8 +18,10 @@ export default function SurveysPage() {
 
     async function load() {
       try {
-        const sets = await get('/dashboard/surveys/')
-        if (!cancelled) setSurveys(sets)
+        const res = await get('/dashboard/surveys/')
+        if (!cancelled) {
+          setSurveys(res.items ?? [])
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -29,10 +31,11 @@ export default function SurveysPage() {
     return () => { cancelled = true }
   }, [ready]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this survey? Any linked locations will lose their survey.')) return
-    await del(`/dashboard/surveys/${id}/`)
-    setSurveys((prev) => prev.filter((s) => s.id !== id))
+  const handleDelete = async () => {
+    if (!editing) return
+    await del(`/dashboard/surveys/${editing.id}/`)
+    setSurveys((prev) => prev.filter((s) => s.id !== editing.id))
+    setEditing(null)
   }
 
   const handleSaved = (survey, isNew) => {
@@ -75,50 +78,43 @@ export default function SurveysPage() {
 
       {/* List */}
       {surveys.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-dashed border-gray-200 rounded-xl">
-          <ClipboardList className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No surveys yet.</p>
-          <p className="text-xs text-gray-400 mt-1">Create one to attach to your locations.</p>
+        <div className="text-center py-16 text-gray-400">
+          <ClipboardList className="w-8 h-8 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No surveys yet. Create your first one.</p>
         </div>
       ) : (
         <div className="space-y-2">
           {surveys.map((survey) => {
             const questionCount = survey.questions?.length ?? 0
-            const hasIncentive  = !!survey.active_incentive
-
+            const locationCount = survey.location_count ?? 0
             return (
               <div
                 key={survey.id}
+                className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-4 cursor-pointer hover:border-gray-300 transition-colors"
                 onClick={() => openEdit(survey)}
-                className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-4 cursor-pointer hover:border-gray-300 transition-colors group"
               >
-                <ClipboardList className="w-4 h-4 text-gray-400 shrink-0" />
-
+                <ClipboardList className="w-4 h-4 text-gray-300 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{survey.name}</p>
-                  <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <span className="text-xs text-gray-400">
                       {questionCount} question{questionCount !== 1 ? 's' : ''}
                     </span>
-                    {hasIncentive && (
-                      <span className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">
-                        🎁 {survey.active_incentive.prize_text}
+                    {survey.active_incentive && (
+                      <span className="text-xs text-amber-600 inline-flex items-center gap-1">
+                        <Gift className="w-3 h-3" />
+                        {survey.active_incentive.prize_text}
                       </span>
                     )}
                     {survey.comments_enabled && (
                       <span className="text-xs text-gray-400">+ comments</span>
                     )}
                     <span className="text-xs text-gray-400">
-                      {survey.location_count} location{survey.location_count !== 1 ? 's' : ''}
+                      {locationCount} location{locationCount !== 1 ? 's' : ''}
                     </span>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-1">
-                
-                   
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
               </div>
             )
           })}
@@ -128,9 +124,9 @@ export default function SurveysPage() {
       {modalOpen && (
         <SurveyBuilderModal
           survey={editing}
-          onSaved={handleSaved}
-          onDelete={editing ? () => handleDelete(editing.id) : undefined}
           onClose={() => { setModalOpen(false); setEditing(null) }}
+          onSaved={handleSaved}
+          onDelete={editing ? handleDelete : undefined}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
+import { logout } from '@/lib/logout'
 import { MapPin, ClipboardList, LogOut, Zap, Menu, X, BarChart2, CreditCard, Settings, Gift, CheckCircle2 } from 'lucide-react'
 import { clsx } from 'clsx'
 import theme from '@/lib/theme'
@@ -67,7 +68,7 @@ function SidebarContent({ onNav }) {
           <p className={s.footer.email}>{session?.user?.email}</p>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: '/auth/login' })}
+          onClick={() => logout()}
           className={s.footer.signOut}
         >
           <LogOut className="w-4 h-4 shrink-0" />

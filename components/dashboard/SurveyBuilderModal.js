@@ -45,7 +45,7 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
   useEffect(() => {
     if (!api.ready) return
 
-    api.get('/dashboard/incentives/').then(setIncentives).catch(() => {})
+    api.get('/dashboard/incentives/').then(res => setIncentives(res.items ?? [])).catch(() => {})
 
     if (!isEdit) {
       api.get('/dashboard/organization/').then(org => {
