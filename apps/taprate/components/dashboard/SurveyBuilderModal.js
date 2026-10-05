@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react'
 import { useApi } from '@platform/shared/hooks/useApi'
 import { X, Gift, Trash2, Plus, ChevronUp, ChevronDown, AlertTriangle, ExternalLink, HeartHandshake } from 'lucide-react'
 import Toggle from '@platform/shared/ui/Toggle'
+import IssueOptionsEditor from '@platform/shared/survey/IssueOptionsEditor'
+import { DEFAULT_ISSUES_QUESTION } from '@platform/shared/survey/issuePresets'
+
+const TYPE_OPTIONS = [
+  { value: 'rating', label: 'Rating' },
+  { value: 'issues', label: 'Issues' },
+]
 
 const SCALE_OPTIONS = [
   { value: 'numbers', label: '1–5' },
@@ -11,7 +18,9 @@ const SCALE_OPTIONS = [
   { value: 'emoji', label: '😊 Emoji' },
 ]
 
-const DEFAULT_QUESTION = () => ({ _key: Math.random(), question: '', scale_type: 'stars' })
+const DEFAULT_QUESTION = () => ({
+  _key: Math.random(), question: '', question_type: 'rating', scale_type: 'stars', active: true, options: [],
+})
 
 const DEFAULT_RECOVERY_MESSAGE =
   "We're sorry your experience fell short. Tell us what happened and we'll make it right."
@@ -60,7 +69,11 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
   // ── Questions state ───────────────────────────────────────────────────────
   const [questions, setQuestions] = useState(
     isEdit
-      ? surveySet.questions.map(s => ({ ...s, _key: s.id }))
+      ? surveySet.questions.map(s => ({
+          ...s,
+          _key: s.id,
+          options: (s.options || []).map(o => ({ ...o, _key: o.id })),
+        }))
       : [DEFAULT_QUESTION()]
   )
 
@@ -77,6 +90,25 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
 
   const updateQuestion = (key, field, value) =>
     setQuestions(prev => prev.map(q => q._key === key ? { ...q, [field]: value } : q))
+
+  const setQuestionType = (key, type) =>
+    setQuestions(prev => prev.map(q => {
+      if (q._key !== key) return q
+      const question = type === 'issues' && !q.question.trim() ? DEFAULT_ISSUES_QUESTION : q.question
+      return { ...q, question_type: type, question }
+    }))
+
+  // API payload for one question (options only for issues questions)
+  const questionPayload = (q, position) => ({
+    question: q.question.trim(),
+    question_type: q.question_type,
+    scale_type: q.scale_type,
+    active: q.active,
+    position,
+    ...(q.question_type === 'issues' && {
+      options: q.options.map((o, i) => ({ ...(o.id && { id: o.id }), label: o.label.trim(), alerts: o.alerts, position: i })),
+    }),
+  })
 
   const moveQuestion = (key, dir) => {
     setQuestions(prev => {
@@ -98,7 +130,12 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
     if (questions.length === 0) return setError('Add at least one question.')
     for (const q of questions) {
       if (!q.question.trim()) return setError('All questions must have text.')
+      if (q.question_type === 'issues') {
+        if (q.options.length === 0) return setError('Issues questions need at least one issue.')
+        if (q.options.some(o => !o.label.trim())) return setError('Issues can’t be blank.')
+      }
     }
+    if (!questions.some(q => q.active)) return setError('At least one question must be shown.')
     if (urlError) return setError('Please fix the review redirect URL.')
 
     setSubmitting(true)
@@ -132,7 +169,7 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
 
         for (let i = 0; i < questions.length; i++) {
           const q = questions[i]
-          const payload = { question: q.question.trim(), scale_type: q.scale_type, position: i }
+          const payload = questionPayload(q, i)
           if (q.id) {
             await api.patch(`/dashboard/surveys/${surveySet.id}/questions/${q.id}/`, payload)
           } else {
@@ -142,11 +179,7 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
 
         saved = await api.get(`/dashboard/surveys/${surveySet.id}/`)
       } else {
-        const questionsPayload = questions.map((q, i) => ({
-          question: q.question.trim(),
-          scale_type: q.scale_type,
-          position: i,
-        }))
+        const questionsPayload = questions.map((q, i) => questionPayload(q, i))
 
         saved = await api.post('/dashboard/surveys/', {
           ...surveyPayload,
@@ -234,7 +267,23 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
                       </button>
                     </div>
 
-                    <div className="flex-1 min-w-0">
+                    <div className={`flex-1 min-w-0 ${q.active ? '' : 'opacity-60'}`}>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="inline-flex rounded-lg bg-gray-100 p-0.5">
+                          {TYPE_OPTIONS.map(opt => (
+                            <button key={opt.value}
+                              onClick={() => setQuestionType(q._key, opt.value)}
+                              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                                q.question_type === opt.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >{opt.label}</button>
+                          ))}
+                        </div>
+                        <label className="flex items-center gap-2 text-xs text-gray-500">
+                          {q.active ? 'Shown' : 'Hidden'}
+                          <Toggle enabled={q.active} onChange={v => updateQuestion(q._key, 'active', v)} />
+                        </label>
+                      </div>
                       <input
                         type="text"
                         value={q.question}
@@ -242,18 +291,25 @@ export default function SurveyBuilderModal({ survey: surveySet, onSaved, onDelet
                         placeholder={`Question ${i + 1}…`}
                         className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-900 mb-2"
                       />
-                      <div className="flex gap-1.5">
-                        {SCALE_OPTIONS.map(opt => (
-                          <button key={opt.value}
-                            onClick={() => updateQuestion(q._key, 'scale_type', opt.value)}
-                            className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                              q.scale_type === opt.value
-                                ? 'bg-gray-900 text-white border-gray-900'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                            }`}
-                          >{opt.label}</button>
-                        ))}
-                      </div>
+                      {q.question_type === 'issues' ? (
+                        <IssueOptionsEditor
+                          options={q.options}
+                          onChange={opts => updateQuestion(q._key, 'options', opts)}
+                        />
+                      ) : (
+                        <div className="flex gap-1.5">
+                          {SCALE_OPTIONS.map(opt => (
+                            <button key={opt.value}
+                              onClick={() => updateQuestion(q._key, 'scale_type', opt.value)}
+                              className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                                q.scale_type === opt.value
+                                  ? 'bg-gray-900 text-white border-gray-900'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                              }`}
+                            >{opt.label}</button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {questions.length > 1 && (

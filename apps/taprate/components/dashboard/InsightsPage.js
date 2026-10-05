@@ -8,7 +8,7 @@ import {
 } from 'recharts'
 import {
   TrendingUp, TrendingDown, Minus, Star, MessageSquare,
-  AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, FlaskConical,
+  AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, FlaskConical, Wrench,
 } from 'lucide-react'
 
 // ── Colour helpers ────────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ function AlertsFeed({ alerts, onResolve }) {
           <CheckCircle className="w-4 h-4 text-green-500" />
           <h2 className="text-sm font-medium text-gray-900">No pending alerts</h2>
         </div>
-        <p className="text-sm text-gray-400 mt-1">All clear — no low ratings in this period.</p>
+        <p className="text-sm text-gray-400 mt-1">All clear — no low ratings or reported issues.</p>
       </div>
     )
   }
@@ -219,17 +219,30 @@ function AlertsFeed({ alerts, onResolve }) {
       <div className="space-y-0 divide-y divide-gray-50">
         {alerts.map((alert) => (
           <div key={alert.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-            <span
-              className="text-sm font-semibold w-6 text-center shrink-0"
-              style={{ color: ratingColor(alert.rating) }}
-            >
-              {alert.rating}★
-            </span>
+            {alert.kind === 'issue' ? (
+              <Wrench className="w-4 h-4 mx-1 text-amber-500 shrink-0" aria-label="Issue reported" />
+            ) : (
+              <span
+                className="text-sm font-semibold w-6 text-center shrink-0"
+                style={{ color: ratingColor(alert.rating) }}
+              >
+                {alert.rating}★
+              </span>
+            )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-700 truncate">{alert.location}</p>
+              <p className="text-sm text-gray-700 truncate">
+                {alert.kind === 'issue' ? (
+                  <>
+                    <span className="font-medium">{alert.issue_label}</span>
+                    {alert.report_count > 1 && <span className="text-gray-400"> ×{alert.report_count}</span>}
+                    <span className="text-gray-400"> · {alert.location}</span>
+                  </>
+                ) : alert.location}
+              </p>
               <div className="flex items-center gap-2 mt-0.5">
                 <p className="text-xs text-gray-400">
-                  {new Date(alert.created_at).toLocaleDateString('en-US', {
+                  {alert.kind === 'issue' && alert.report_count > 1 && 'Last reported '}
+                  {new Date((alert.kind === 'issue' && alert.last_reported_at) || alert.created_at).toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                   })}
                 </p>
@@ -256,6 +269,39 @@ function AlertsFeed({ alerts, onResolve }) {
   )
 }
 
+function IssuesCard({ issues }) {
+  if (!issues?.answered) return null
+  const pct = Math.round((issues.with_issues / issues.answered) * 100)
+  const max = issues.top[0]?.count || 1
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="text-sm font-medium text-gray-900">Reported issues</h2>
+        <p className="text-xs text-gray-400">
+          {issues.with_issues} of {issues.answered} visits ({pct}%) reported something
+        </p>
+      </div>
+      {issues.top.length === 0 ? (
+        <p className="text-sm text-gray-400">Nothing reported in this period.</p>
+      ) : (
+        <ul className="space-y-2.5">
+          {issues.top.map((issue) => (
+            <li key={issue.label}>
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="text-gray-700">{issue.label}</span>
+                <span className="text-gray-400 tabular-nums">{issue.count}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-full rounded-full bg-amber-400" style={{ width: `${(issue.count / max) * 100}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 // ── Comments tab ──────────────────────────────────────────────────────────────
 
 function CommentCard({ item }) {
@@ -264,12 +310,14 @@ function CommentCard({ item }) {
     <div className={`bg-white border rounded-xl p-4 ${item.is_test ? 'border-amber-200' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className="text-sm font-semibold px-2 py-0.5 rounded-md"
-            style={{ color, background: `${color}18` }}
-          >
-            {item.rating}★
-          </span>
+          {item.rating != null && (
+            <span
+              className="text-sm font-semibold px-2 py-0.5 rounded-md"
+              style={{ color, background: `${color}18` }}
+            >
+              {item.rating}★
+            </span>
+          )}
           <span className="text-sm text-gray-700">{item.location_name}</span>
           {item.survey_name && (
             <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
@@ -478,7 +526,7 @@ export default function InsightsPage() {
     }
   }, [patch]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { summary, daily_series, by_location, distribution, pending_alerts } = data || {}
+  const { summary, daily_series, by_location, distribution, issues, pending_alerts } = data || {}
 
   const handleViewTestResponses = () => {
     setShowTestComments(true)
@@ -593,6 +641,8 @@ export default function InsightsPage() {
               <LocationTable locations={by_location} />
               {distribution && <DistributionChart distribution={distribution} />}
             </div>
+
+            <IssuesCard issues={issues} />
 
             <AlertsFeed alerts={pending_alerts} onResolve={handleResolve} />
           </div>

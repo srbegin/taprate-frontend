@@ -11,6 +11,7 @@
   },
   "peerDependencies": {
     "axios": "*",
+    "lucide-react": "*",
     "next": "*",
     "next-auth": "*",
     "react": "*"

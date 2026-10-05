@@ -105,6 +105,34 @@ function EmojiScale({ selected, onSelect }) {
 
 const SCALE_MAP = { numbers: NumberScale, stars: StarScale, emoji: EmojiScale }
 
+// Issues question: pick any that apply (none = "all good").
+function IssueChips({ options, selected, onToggle, accentColor, selectedTextColor }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-2.5 max-w-sm">
+      {options.map(option => {
+        const isOn = selected.includes(option.id)
+        return (
+          <button key={option.id} onClick={() => onToggle(option.id)}
+            aria-pressed={isOn}
+            className={`min-h-12 px-4 py-3 rounded-2xl border text-sm font-medium transition-all duration-150 active:scale-95 ${
+              isOn ? 'border-transparent shadow-lg shadow-black/40' : 'border-white/15 bg-white/5 text-white/80 hover:border-white/30'
+            }`}
+            style={isOn ? { background: accentColor, color: selectedTextColor } : {}}
+          >
+            {isOn ? '✓ ' : ''}{option.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function issueButtonLabel(count, isLastStep) {
+  if (count === 0) return isLastStep ? 'All good — submit' : 'All good →'
+  const noun = count === 1 ? 'issue' : 'issues'
+  return isLastStep ? `Report ${count} ${noun}` : `Report ${count} ${noun} →`
+}
+
 // ── Shared shell ──────────────────────────────────────────────────────────────
 
 function PageShell({ accentColor, children }) {
@@ -213,6 +241,7 @@ function SurveyFlow({ sessionToken, data }) {
   const [page, setPage]                       = useState(cooldown ? 'limited' : 'survey')
   const [step, setStep]                       = useState(0)
   const [ratings, setRatings]                 = useState({})
+  const [issues, setIssues]                   = useState({})   // questionId -> [optionId]
   const [comment, setComment]                 = useState('')
   const [email, setEmail]                     = useState('')
   const [marketingOptIn, setMarketingOptIn]   = useState(false)
@@ -265,6 +294,17 @@ function SurveyFlow({ sessionToken, data }) {
     }
   }, [currentQuestion, recovery_enabled, recovery_threshold])
 
+  const handleToggleIssue = useCallback((optionId) => {
+    setIssues(prev => {
+      const current = prev[currentQuestion.id] || []
+      const next = current.includes(optionId)
+        ? current.filter(id => id !== optionId)
+        : [...current, optionId]
+      return { ...prev, [currentQuestion.id]: next }
+    })
+    if (navigator.vibrate) navigator.vibrate(10)
+  }, [currentQuestion])
+
   const handleNext = useCallback(() => {
     if (step < totalSteps - 1) setStep(s => s + 1)
   }, [step, totalSteps])
@@ -274,10 +314,11 @@ function SurveyFlow({ sessionToken, data }) {
     setSubmitting(true)
 
     try {
-      const responses = questions.map(q => ({
-        question_id: q.id,
-        rating: ratings[q.id],
-      }))
+      const responses = questions.map(q => (
+        q.question_type === 'issues'
+          ? { question_id: q.id, issue_ids: issues[q.id] || [] }
+          : { question_id: q.id, rating: ratings[q.id] }
+      ))
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/survey/${sessionToken}/response/`,
@@ -315,7 +356,7 @@ function SurveyFlow({ sessionToken, data }) {
       setSubmitting(false)
     }
   }, [
-    submitting, questions, ratings, comment, email,
+    submitting, questions, ratings, issues, comment, email,
     marketingOptIn, recoveryComment, recoveryEmail,
     sessionToken, location_id,
   ])
@@ -350,9 +391,14 @@ function SurveyFlow({ sessionToken, data }) {
 
           {/* ── Question step ── */}
           {!isCommentsStep && !isRecoveryStep && !isIncentiveStep && currentQuestion && (() => {
+            const isIssues   = currentQuestion.question_type === 'issues'
             const ScaleComponent = SCALE_MAP[currentQuestion.scale_type] || NumberScale
-            const canAdvance = !!ratings[currentQuestion.id]
+            const picked     = issues[currentQuestion.id] || []
+            const canAdvance = isIssues || !!ratings[currentQuestion.id]
             const isLastStep = step === totalSteps - 1
+            const buttonLabel = submitting ? 'Sending…'
+              : isIssues ? issueButtonLabel(picked.length, isLastStep)
+              : isLastStep ? 'Submit' : 'Next →'
 
             return (
               <div className="flex flex-col items-center w-full">
@@ -360,7 +406,17 @@ function SurveyFlow({ sessionToken, data }) {
                   {currentQuestion.question}
                 </p>
                 <div className="mb-10">
-                  <ScaleComponent selected={ratings[currentQuestion.id] || null} onSelect={handleRate} />
+                  {isIssues ? (
+                    <IssueChips
+                      options={currentQuestion.options || []}
+                      selected={picked}
+                      onToggle={handleToggleIssue}
+                      accentColor={accentColor}
+                      selectedTextColor={buttonTextColor}
+                    />
+                  ) : (
+                    <ScaleComponent selected={ratings[currentQuestion.id] || null} onSelect={handleRate} />
+                  )}
                 </div>
                 <button
                   onClick={isLastStep ? handleSubmit : handleNext}
@@ -376,7 +432,7 @@ function SurveyFlow({ sessionToken, data }) {
                     boxShadow: canAdvance ? `0 8px 24px ${accentColor}55` : 'none',
                   }}
                 >
-                  {submitting ? 'Sending…' : isLastStep ? 'Submit' : 'Next →'}
+                  {buttonLabel}
                 </button>
               </div>
             )
