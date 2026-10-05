@@ -1,0 +1,18 @@
+{
+  "name": "@platform/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Code shared by the Cleanpulse and TapRate frontends: API client, auth, hooks, public survey/claim UI.",
+  "exports": {
+    "./*": "./*.js"
+  },
+  "scripts": {
+    "lint": "eslint"
+  },
+  "peerDependencies": {
+    "axios": "*",
+    "next": "*",
+    "next-auth": "*",
+    "react": "*"
+  }
+}

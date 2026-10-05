@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Frontends — TapRate & Cleanpulse
 
-## Getting Started
+npm-workspaces monorepo. One backend (`srbegin/taprate-backend`) serves both brands.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+apps/taprate/       TapRate app (taprate.app) — Vercel project "cleanpulse", Root Directory apps/taprate
+apps/cleanpulse/    Cleanpulse app (cleanpulse.app) — not created yet
+packages/shared/    @platform/shared — API client, auth config, hooks, public survey/claim UI
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Each app sets `NEXT_PUBLIC_PRODUCT` in its `next.config.mjs`; `@platform/shared/brand` reads it to
+send the `X-Product` header and show the right brand name.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Commands (from the repo root)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install              # installs every workspace (one lockfile at the root)
+npm run dev:taprate      # http://localhost:3000
+npm run build:taprate
+npm run lint             # lints every workspace
+```
 
-## Learn More
+Env for local dev lives in `apps/<app>/.env.local` (`NEXT_PUBLIC_API_URL` includes `/api`).
 
-To learn more about Next.js, take a look at the following resources:
+## Adding shared code
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Put it in `packages/shared/` and import it as `@platform/shared/<path>` (no extension).
+Apps compile it via `transpilePackages`, and their `globals.css` has `@source "../../../packages/shared"`
+so Tailwind sees its classes. Inside the package, use relative imports.
