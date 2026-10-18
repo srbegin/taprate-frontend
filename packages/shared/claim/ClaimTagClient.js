@@ -36,7 +36,9 @@ export default function ClaimTagClient({ tagId }) {
     setError('')
     try {
       await post(`/tags/${tagId}/`, { location_id: selectedLocation })
-      router.push(`/s/${selectedLocation}`)
+      // Show the owner the survey this tag now opens, as a test (preview) session
+      const preview = await post(`/dashboard/locations/${selectedLocation}/preview/`).catch(() => null)
+      router.push(preview?.token ? `/s/${preview.token}` : '/dashboard/locations')
     } catch (e) {
       setError(e?.response?.data?.detail || 'Failed to claim tag.')
       setSubmitting(false)

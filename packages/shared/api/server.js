@@ -6,7 +6,7 @@
  */
 const API = process.env.NEXT_PUBLIC_API_URL
 
-async function request(path, { method = 'GET', clientIp } = {}) {
+async function request(path, { method = 'GET', clientIp, body } = {}) {
   try {
     const res = await fetch(`${API}${path}`, {
       method,
@@ -14,6 +14,7 @@ async function request(path, { method = 'GET', clientIp } = {}) {
         'Content-Type': 'application/json',
         ...(clientIp && { 'X-Forwarded-For': clientIp }),
       },
+      ...(body && { body: JSON.stringify(body) }),
       cache: 'no-store',
     })
     if (!res.ok) return null
@@ -32,7 +33,7 @@ export function clientIpFrom(headersList) {
   )
 }
 
-/** { claimed, location_id?, product } for an NFC tag, or null. */
+/** { claimed, location_id, product, placard_id } for an NFC tag, or null. */
 export function getTagStatus(tagId) {
   return request(`/tags/${tagId}/`)
 }
@@ -45,6 +46,16 @@ export function mintTagSession(tagId, clientIp) {
 /** Mint a survey session for a QR scan → { token } or null. */
 export function mintQrSession(locationId) {
   return request(`/survey/location/${locationId}/session/`, { method: 'POST' })
+}
+
+/** { id, short_code, product, claimed, has_nfc } for a placard, or null. */
+export function getPlacard(placardId) {
+  return request(`/placards/${placardId}/`)
+}
+
+/** Mint a survey session for a placard scan/tap → { token } or null. */
+export function mintPlacardSession(placardId, via, clientIp) {
+  return request(`/placards/${placardId}/session/`, { method: 'POST', clientIp, body: { via } })
 }
 
 /** Survey payload for a session token, or null if expired/invalid. */

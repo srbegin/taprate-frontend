@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@platform/shared/api/client';
 
-const TABS = ['Overview', 'Organizations', 'Tags', 'Signups', 'Contacts'];
+const TABS = ['Overview', 'Organizations', 'Placards', 'Tags', 'Signups', 'Contacts'];
 
 function StatCard({ label, value, sub }) {
   return (
@@ -88,7 +88,7 @@ function OverviewTab() {
   }, []);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
       <StatCard label="Organizations"   value={data?.orgs} />
       <StatCard label="Locations"       value={data?.locations} />
       <StatCard
@@ -100,6 +100,11 @@ function OverviewTab() {
         label="NFC Tags"
         value={data?.tags_total}
         sub={`${data?.tags_claimed ?? '…'} claimed · ${data?.tags_unclaimed ?? '…'} unclaimed`}
+      />
+      <StatCard
+        label="Placards"
+        value={data?.placards_total}
+        sub={`${data?.placards_paired ?? '…'} paired · ${data?.placards_claimed ?? '…'} claimed`}
       />
     </div>
   );
@@ -143,6 +148,194 @@ function OrganizationsTab() {
       empty="No organizations yet."
       onRowClick={row => router.push(`/admin/orgs/${row.id}`)}
     />
+  );
+}
+
+async function downloadFile(path, filename) {
+  const res = await api.get(path, { responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const PLACARD_STATUS = {
+  unpaired: { label: 'Unpaired', cls: 'bg-white/10 text-white/40' },
+  paired:   { label: 'Paired',   cls: 'bg-blue-500/20 text-blue-300' },
+  claimed:  { label: 'Claimed',  cls: 'bg-emerald-500/20 text-emerald-300' },
+};
+
+function placardStatus(p) {
+  if (p.claimed) return 'claimed';
+  return p.nfc_tag_id ? 'paired' : 'unpaired';
+}
+
+function PlacardsTab() {
+  const [batches, setBatches]   = useState(null);
+  const [placards, setPlacards] = useState(null);
+  const [batchId, setBatchId]   = useState('');
+  const [filter, setFilter]     = useState('all');
+  const [quantity, setQuantity] = useState('');
+  const [note, setNote]         = useState('');
+  const [creating, setCreating] = useState(false);
+  const [error, setError]       = useState('');
+  const [busy, setBusy]         = useState(null);   // placard id with an action in flight
+
+  const loadBatches = useCallback(() => {
+    api.get('/admin/placard-batches/').then(r => setBatches(r.data.items ?? []));
+  }, []);
+
+  const loadPlacards = useCallback(() => {
+    const params = new URLSearchParams();
+    if (batchId) params.set('batch', batchId);
+    if (filter !== 'all') params.set('status', filter);
+    api.get(`/admin/placards/?${params}`).then(r => setPlacards(r.data.items ?? []));
+  }, [batchId, filter]);
+
+  useEffect(() => { loadBatches(); }, [loadBatches]);
+  useEffect(() => { loadPlacards(); }, [loadPlacards]);
+
+  const createBatch = async (e) => {
+    e.preventDefault();
+    setError('');
+    setCreating(true);
+    try {
+      const res = await api.post('/admin/placard-batches/', { quantity: Number(quantity), note });
+      setQuantity('');
+      setNote('');
+      loadBatches();
+      setBatchId(res.data.id);
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Could not create batch.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const act = async (placard, action) => {
+    if (action === 'release' && !window.confirm(`Release ${placard.short_code} from ${placard.org_name}?`)) return;
+    setBusy(placard.id);
+    try {
+      const res = await api.post(`/admin/placards/${placard.id}/${action}/`);
+      setPlacards(prev => prev.map(p => (p.id === placard.id ? res.data : p)));
+      loadBatches();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const batchCols = [
+    { key: 'created_at', label: 'Created', render: fmt },
+    { key: 'note',       label: 'Note', render: v => v || '—' },
+    { key: 'quantity',   label: 'Qty' },
+    { key: 'paired',     label: 'Paired',  render: (v, row) => `${v} / ${row.quantity}` },
+    { key: 'claimed',    label: 'Claimed', render: (v, row) => `${v} / ${row.quantity}` },
+    {
+      key: '_files',
+      label: 'Files',
+      render: (_, row) => {
+        const stamp = row.created_at.slice(0, 10);
+        return (
+          <span className="flex gap-3">
+            <button onClick={e => { e.stopPropagation(); downloadFile(`/admin/placard-batches/${row.id}/export.csv`, `placards-${stamp}.csv`); }}
+              className="text-xs text-violet-400 hover:text-violet-300">CSV</button>
+            <button onClick={e => { e.stopPropagation(); downloadFile(`/admin/placard-batches/${row.id}/qr.zip`, `placard-qr-${stamp}.zip`); }}
+              className="text-xs text-violet-400 hover:text-violet-300">QR ZIP</button>
+          </span>
+        );
+      },
+    },
+  ];
+
+  const placardCols = [
+    { key: 'short_code', label: 'Code', render: v => <span className="font-mono text-white">{v}</span> },
+    {
+      key: '_status',
+      label: 'Status',
+      render: (_, row) => {
+        const s = PLACARD_STATUS[placardStatus(row)];
+        return <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span>;
+      },
+    },
+    { key: 'nfc_tag_id',    label: 'NFC tag', render: v => v ? <span className="font-mono text-xs text-white/50">{v.slice(0, 8)}…</span> : '—' },
+    { key: 'org_name',      label: 'Business' },
+    { key: 'location_name', label: 'Location' },
+    { key: 'claimed_at',    label: 'Claimed', render: fmt },
+    {
+      key: '_action',
+      label: '',
+      render: (_, row) => {
+        if (busy === row.id) return <span className="text-xs text-white/30">Working…</span>;
+        return (
+          <span className="flex gap-3">
+            {row.nfc_tag_id && (
+              <button onClick={e => { e.stopPropagation(); act(row, 'unpair'); }}
+                className="text-xs text-white/30 hover:text-white/70">Unpair</button>
+            )}
+            {row.claimed && (
+              <button onClick={e => { e.stopPropagation(); act(row, 'release'); }}
+                className="text-xs text-white/30 hover:text-red-400">Release</button>
+            )}
+          </span>
+        );
+      },
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <form onSubmit={createBatch} className="bg-[#1a1a1f] border border-white/10 rounded-xl p-5 flex flex-wrap items-end gap-3">
+        <div>
+          <label className="block text-xs text-white/40 mb-1">New batch — quantity</label>
+          <input type="number" min="1" max="500" required value={quantity} onChange={e => setQuantity(e.target.value)}
+            className="w-28 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white outline-none focus:border-violet-500" />
+        </div>
+        <div className="flex-1 min-w-48">
+          <label className="block text-xs text-white/40 mb-1">Note (optional)</label>
+          <input type="text" maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Vinyl test run"
+            className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/20 outline-none focus:border-violet-500" />
+        </div>
+        <button type="submit" disabled={creating}
+          className="bg-violet-600 hover:bg-violet-500 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50">
+          {creating ? 'Creating…' : 'Create Cleanpulse placards'}
+        </button>
+        {error && <p className="w-full text-xs text-red-400">{error}</p>}
+        <p className="w-full text-xs text-white/30">
+          To pair: sign in at cleanpulse.app on your phone as staff, scan a placard’s QR code, then tap the NFC tag
+          on it (either order). Each page confirms when they’re paired.
+        </p>
+      </form>
+
+      <section>
+        <h2 className="text-sm font-medium text-white/70 mb-3">Batches</h2>
+        {!batches
+          ? <p className="text-white/30 text-sm py-8 text-center">Loading…</p>
+          : <Table cols={batchCols} rows={batches} empty="No placard batches yet." onRowClick={row => setBatchId(row.id)} />}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-sm font-medium text-white/70 mr-2">Placards</h2>
+          {['all', 'unpaired', 'paired', 'claimed'].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors capitalize ${
+                filter === f ? 'bg-violet-600 border-violet-600 text-white' : 'border-white/10 text-white/50 hover:text-white'
+              }`}>{f}</button>
+          ))}
+          {batchId && (
+            <button onClick={() => setBatchId('')} className="text-xs text-white/40 hover:text-white/70 ml-2">
+              Showing one batch · show all
+            </button>
+          )}
+          {placards && <span className="ml-auto text-xs text-white/30">{placards.length} placards</span>}
+        </div>
+        {!placards
+          ? <p className="text-white/30 text-sm py-8 text-center">Loading…</p>
+          : <Table cols={placardCols} rows={placards} empty="No placards match." />}
+      </section>
+    </div>
   );
 }
 
@@ -206,6 +399,12 @@ function TagsTab() {
         </span>
       ),
     },
+    { key: 'product',       label: 'Product' },
+    {
+      key: 'placard_code',
+      label: 'Placard',
+      render: v => v ? <span className="font-mono text-xs text-white/70">{v}</span> : '—',
+    },
     { key: 'org_name',      label: 'Organization' },
     { key: 'location_name', label: 'Location' },
     { key: 'claimed_at',    label: 'Claimed',  render: fmt },
@@ -215,7 +414,7 @@ function TagsTab() {
       label: '',
       render: (_, row) => {
         const tagId = row.id;
-        if (!row.claimed) return null;
+        if (!row.claimed || row.placard_code) return null;   // placard tags: use the Placards tab
         if (releasing.has(tagId)) {
           return <span className="text-xs text-white/30">Releasing…</span>;
         }
@@ -572,6 +771,7 @@ export default function AdminPage() {
         <div>
           {activeTab === 'Overview'      && <OverviewTab />}
           {activeTab === 'Organizations' && <OrganizationsTab />}
+          {activeTab === 'Placards'      && <PlacardsTab />}
           {activeTab === 'Tags'          && <TagsTab />}
           {activeTab === 'Signups'       && <SignupsTab />}
           {activeTab === 'Contacts'      && <ContactsTab />}

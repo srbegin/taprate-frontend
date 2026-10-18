@@ -12,4 +12,11 @@ const BRANDS = {
 
 const brand = BRANDS[process.env.NEXT_PUBLIC_PRODUCT] ?? BRANDS.taprate
 
+// Each brand's public site, for cross-brand redirects (e.g. a Cleanpulse tag
+// tapped on taprate.app). Overridable for local dev.
+export const SITE_URLS = {
+  taprate:    process.env.NEXT_PUBLIC_TAPRATE_URL    || 'https://taprate.app',
+  cleanpulse: process.env.NEXT_PUBLIC_CLEANPULSE_URL || 'https://cleanpulse.app',
+}
+
 export default brand
