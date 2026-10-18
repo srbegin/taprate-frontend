@@ -2,6 +2,16 @@
 /* Workspace packages live in node_modules, which Tailwind skips — scan them explicitly. */
 @source "../../../packages/shared";
 
+/* Brand accent used by shared UI (bg-brand, text-brand-soft, …).
+   TapRate = Tailwind violet; values copied from tailwindcss/theme.css. */
+@theme {
+  --color-brand:        oklch(54.1% 0.281 293.009); /* violet-600 */
+  --color-brand-hover:  oklch(60.6% 0.25 292.717);  /* violet-500 */
+  --color-brand-ring:   oklch(60.6% 0.25 292.717);  /* violet-500 */
+  --color-brand-soft:   oklch(70.2% 0.183 293.541); /* violet-400 */
+  --color-brand-softer: oklch(81.1% 0.111 293.571); /* violet-300 */
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

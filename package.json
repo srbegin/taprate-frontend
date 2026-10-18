@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "dev:taprate": "npm run dev -w apps/taprate",
+    "dev:cleanpulse": "npm run dev -w apps/cleanpulse",
     "build:taprate": "npm run build -w apps/taprate",
+    "build:cleanpulse": "npm run build -w apps/cleanpulse",
     "lint": "npm run lint --workspaces --if-present"
   }
 }

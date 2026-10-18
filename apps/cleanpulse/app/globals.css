@@ -1,0 +1,38 @@
+@import "tailwindcss";
+/* Workspace packages live in node_modules, which Tailwind skips — scan them explicitly. */
+@source "../../../packages/shared";
+
+/* Brand accent used by shared UI (bg-brand, text-brand-soft, …).
+   Cleanpulse = Tailwind teal (provisional until the design pass); values from tailwindcss/theme.css. */
+@theme {
+  --color-brand:        oklch(51.1% 0.096 186.391); /* teal-700 — white text passes contrast */
+  --color-brand-hover:  oklch(60% 0.118 184.704);   /* teal-600 */
+  --color-brand-ring:   oklch(70.4% 0.14 182.503);  /* teal-500 */
+  --color-brand-soft:   oklch(77.7% 0.152 181.912); /* teal-400 */
+  --color-brand-softer: oklch(85.5% 0.138 181.071); /* teal-300 */
+}
+
+body {
+  background: #0e0e11;
+  color: #ededed;
+}
+
+/* Prevent iOS Safari auto-zoom on input focus (inputs under 16px trigger it). */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Full-height pages: use the visible viewport on mobile (svh), vh fallback. */
+.full-screen-page {
+  min-height: 100svh;
+  min-height: 100vh;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
