@@ -9,6 +9,10 @@ export default async function ClaimPage({ params }) {
 
   const tag = await getTagStatus(tagId)
 
+  // Unknown tag, or the lookup failed: never fall through to the claim screen —
+  // a customer would be asked to sign in (seen 2026-10-20 on a Cleanpulse tag).
+  if (!tag) redirect('/survey-unavailable')
+
   // Cleanpulse stock (e.g. the Seritag tags encoded taprate.app/claim/<uid>)
   // lives on cleanpulse.app. Printed tags are permanent, so this must stay.
   if (tag?.product === 'cleanpulse') {

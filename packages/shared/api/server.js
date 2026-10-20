@@ -7,21 +7,28 @@
 const API = process.env.NEXT_PUBLIC_API_URL
 
 async function request(path, { method = 'GET', clientIp, body } = {}) {
-  try {
-    const res = await fetch(`${API}${path}`, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(clientIp && { 'X-Forwarded-For': clientIp }),
-      },
-      ...(body && { body: JSON.stringify(body) }),
-      cache: 'no-store',
-    })
-    if (!res.ok) return null
-    return res.json()
-  } catch {
-    return null
+  // Reads retry once on a server error or network blip — a customer tapping a
+  // tag shouldn't land on the wrong screen because of one failed lookup.
+  // Writes (session mints) are not retried.
+  const attempts = method === 'GET' ? 2 : 1
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const res = await fetch(`${API}${path}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(clientIp && { 'X-Forwarded-For': clientIp }),
+        },
+        ...(body && { body: JSON.stringify(body) }),
+        cache: 'no-store',
+      })
+      if (res.ok) return res.json()
+      if (res.status < 500) return null
+    } catch {
+      // network error — retry if attempts remain
+    }
   }
+  return null
 }
 
 /** First client IP from the incoming request headers (for the tag rate limit). */
