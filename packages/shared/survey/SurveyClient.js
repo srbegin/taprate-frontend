@@ -2,8 +2,10 @@
 
 import { useState, useCallback } from 'react'
 import brand from '../brand'
+import T from './theme'
 
 const EMOJIS = ['😤', '😕', '😐', '🙂', '✨']
+
 const COOLDOWN_MS = 5 * 60 * 1000
 
 function getDeviceHash() {
@@ -53,9 +55,7 @@ function NumberScale({ selected, onSelect }) {
       {[1, 2, 3, 4, 5].map(r => (
         <button key={r} onClick={() => onSelect(r)}
           className={`w-14 h-14 rounded-2xl border text-xl font-serif transition-all duration-200 ${
-            selected === r
-              ? 'border-amber-300/60 text-amber-100 -translate-y-1 scale-110 shadow-lg shadow-black/40'
-              : 'border-white/10 text-white/40 bg-white/5 hover:border-amber-300/30 hover:text-white/70 hover:-translate-y-0.5'
+            selected === r ? T.numOn : T.numOff
           }`}
           style={selected === r ? {
             background: `rgba(${[220,80,80,200,180][r-1]},${[80,120,180,120,160][r-1]},${[80,60,60,80,120][r-1]},0.15)`
@@ -72,8 +72,8 @@ function StarScale({ selected, onSelect }) {
     <div className="flex gap-2">
       {[1, 2, 3, 4, 5].map(r => (
         <button key={r} onClick={() => onSelect(r)}
-          className={`text-4xl transition-all duration-150 hover:scale-110 ${
-            selected !== null && r <= selected ? 'text-amber-300' : 'text-white/20'
+          className={`${T.starSize} transition-all duration-150 hover:scale-110 ${
+            selected !== null && r <= selected ? T.starOn : T.starOff
           }`}
           aria-label={`Rate ${r} out of 5`}
         >★</button>
@@ -95,7 +95,7 @@ function EmojiScale({ selected, onSelect }) {
         >
           <span className="text-3xl">{emoji}</span>
           {selected === i + 1 && (
-            <span className="text-xs text-amber-300/80 tracking-wide">{labels[i]}</span>
+            <span className={`text-xs ${T.emojiLabel} tracking-wide`}>{labels[i]}</span>
           )}
         </button>
       ))}
@@ -115,7 +115,7 @@ function IssueChips({ options, selected, onToggle, accentColor, selectedTextColo
           <button key={option.id} onClick={() => onToggle(option.id)}
             aria-pressed={isOn}
             className={`min-h-12 px-4 py-3 rounded-2xl border text-sm font-medium transition-all duration-150 active:scale-95 ${
-              isOn ? 'border-transparent shadow-lg shadow-black/40' : 'border-white/15 bg-white/5 text-white/80 hover:border-white/30'
+              isOn ? T.chipOn : T.chipOff
             }`}
             style={isOn ? { background: accentColor, color: selectedTextColor } : {}}
           >
@@ -139,17 +139,19 @@ function PageShell({ accentColor, children }) {
   return (
     <div
       className="flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
-      style={{ background: '#0c0c0e', minHeight: '100svh' }}
+      style={{ background: T.pageBg, minHeight: '100svh' }}
     >
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl opacity-10 pointer-events-none"
+      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl ${T.glow} pointer-events-none`}
         style={{ background: accentColor || '#e8d5a3' }} />
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
+      {T.noise && (
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
+      )}
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {children}
       </div>
       <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-        <span className="text-xs tracking-widest uppercase text-white/10">Powered by {brand.name}</span>
+        <span className={`text-xs tracking-widest uppercase ${T.footer}`}>Powered by {brand.name}</span>
       </div>
     </div>
   )
@@ -161,10 +163,10 @@ function NoSurveyState({ locationName }) {
   return (
     <PageShell accentColor="#e8d5a3">
       <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-white/5 border border-white/10">📋</div>
-        <h2 className="font-serif text-2xl text-white/90 text-center mb-3">No survey yet</h2>
-        {locationName && <p className="text-xs text-white/30 tracking-wide mb-4">{locationName}</p>}
-        <p className="text-sm text-white/35 text-center leading-relaxed">
+        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 ${T.tile}`}>📋</div>
+        <h2 className={`${T.display} text-2xl ${T.heading} text-center mb-3`}>No survey yet</h2>
+        {locationName && <p className={`text-xs ${T.meta} tracking-wide mb-4`}>{locationName}</p>}
+        <p className={`text-sm ${T.soft} text-center leading-relaxed`}>
           This location doesn't have a survey assigned yet.
         </p>
       </div>
@@ -181,7 +183,7 @@ function StepDots({ total, current, accentColor }) {
       {Array.from({ length: total }).map((_, i) => (
         <div key={i} className="w-1.5 h-1.5 rounded-full transition-all duration-300"
           style={{
-            background: i === current ? accentColor : i < current ? `${accentColor}60` : 'rgba(255,255,255,0.1)',
+            background: i === current ? accentColor : i < current ? `${accentColor}60` : T.dotIdle,
             transform: i === current ? 'scale(1.3)' : 'scale(1)',
           }}
         />
@@ -196,13 +198,13 @@ function SessionExpiredState() {
   return (
     <PageShell accentColor="#e8d5a3">
       <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-white/5 border border-white/10">
+        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 ${T.tile}`}>
           🙏
         </div>
-        <h2 className="font-serif text-2xl text-white/90 text-center mb-3">
+        <h2 className={`${T.display} text-2xl ${T.heading} text-center mb-3`}>
           Thanks for visiting!
         </h2>
-        <p className="text-sm text-white/40 text-center leading-relaxed">
+        <p className={`text-sm ${T.muted} text-center leading-relaxed`}>
           Come back and tap again soon — we'd love to hear from you next time.
         </p>
       </div>
@@ -380,11 +382,11 @@ function SurveyFlow({ sessionToken, data }) {
           )}
           <div className="flex items-center gap-2 mb-2">
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accentColor }} />
-            <span className="text-xs tracking-widest uppercase text-white/30">{org_name}</span>
+            <span className={`text-xs tracking-widest uppercase ${T.eyebrow}`}>{org_name}</span>
           </div>
-          <h1 className="font-serif text-3xl text-white/90 text-center leading-snug mb-1">{org_name}</h1>
+          <h1 className={`${T.display} text-3xl ${T.heading} text-center leading-snug mb-1`}>{org_name}</h1>
           {location_name && (
-            <p className="text-xs text-white/30 tracking-wide mb-6">{location_name}</p>
+            <p className={`text-xs ${T.meta} tracking-wide mb-6`}>{location_name}</p>
           )}
 
           <StepDots total={totalSteps} current={step} accentColor={accentColor} />
@@ -402,7 +404,7 @@ function SurveyFlow({ sessionToken, data }) {
 
             return (
               <div className="flex flex-col items-center w-full">
-                <p className="text-xs tracking-widest uppercase text-white/40 mb-7 text-center">
+                <p className={`${T.question} text-center`}>
                   {currentQuestion.question}
                 </p>
                 <div className="mb-10">
@@ -421,7 +423,7 @@ function SurveyFlow({ sessionToken, data }) {
                 <button
                   onClick={isLastStep ? handleSubmit : handleNext}
                   disabled={!canAdvance || submitting}
-                  className={`px-10 py-3.5 rounded-xl text-xs tracking-widest uppercase font-medium transition-all duration-200 ${
+                  className={`px-10 py-3.5 rounded-xl ${T.button} transition-all duration-200 ${
                     canAdvance && !submitting
                       ? 'opacity-100 translate-y-0 cursor-pointer hover:-translate-y-0.5 active:scale-95'
                       : 'opacity-0 translate-y-3 pointer-events-none'
@@ -441,7 +443,7 @@ function SurveyFlow({ sessionToken, data }) {
           {/* ── Comments step ── */}
           {isCommentsStep && (
             <div className="flex flex-col items-center w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <p className="text-xs tracking-widest uppercase text-white/40 mb-7 text-center">
+              <p className={`${T.question} text-center`}>
                 {comments_prompt || 'Any additional feedback?'}
               </p>
               <textarea
@@ -450,12 +452,12 @@ function SurveyFlow({ sessionToken, data }) {
                 placeholder="Optional — tell us more…"
                 rows={4}
                 style={{ fontSize: '16px' }}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/80 placeholder:text-white/25 resize-none focus:outline-none focus:border-white/20 transition-colors mb-8"
+                className={`w-full ${T.field} resize-none transition-colors mb-8`}
               />
               <button
                 onClick={showRecoveryStep || hasIncentiveStep ? handleNext : handleSubmit}
                 disabled={submitting}
-                className="px-10 py-3.5 rounded-xl text-xs tracking-widest uppercase font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
+                className={`px-10 py-3.5 rounded-xl ${T.button} transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50`}
                 style={{ background: accentColor, color: buttonTextColor }}
               >
                 {submitting ? 'Sending…' : (showRecoveryStep || hasIncentiveStep) ? 'Next →' : 'Submit'}
@@ -463,7 +465,7 @@ function SurveyFlow({ sessionToken, data }) {
               <button
                 onClick={showRecoveryStep || hasIncentiveStep ? handleNext : handleSubmit}
                 disabled={submitting}
-                className="mt-3 text-xs text-white/20 hover:text-white/40 transition-colors tracking-wide"
+                className={`mt-3 text-xs ${T.skip} transition-colors tracking-wide`}
               >
                 Skip
               </button>
@@ -480,12 +482,12 @@ function SurveyFlow({ sessionToken, data }) {
                 💬
               </div>
 
-              <p className="font-serif text-lg text-white/90 text-center mb-3 leading-snug px-2">
+              <p className={`${T.display} text-lg ${T.heading} text-center mb-3 leading-snug px-2`}>
                 {recovery_message || "We're sorry your experience fell short. Tell us what happened."}
               </p>
 
               {recovery_coupon_text && (
-                <p className="text-xs text-white/45 text-center mb-6 leading-relaxed px-1">
+                <p className={`text-xs ${T.mid} text-center mb-6 leading-relaxed px-1`}>
                   Leave your email and we'll send you:{' '}
                   <span style={{ color: accentColor }} className="font-medium">
                     {recovery_coupon_text}
@@ -499,7 +501,7 @@ function SurveyFlow({ sessionToken, data }) {
                 placeholder="What could we have done better?"
                 rows={3}
                 style={{ fontSize: '16px' }}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/80 placeholder:text-white/25 resize-none focus:outline-none focus:border-white/20 transition-colors mb-3"
+                className={`w-full ${T.field} resize-none transition-colors mb-3`}
               />
 
               <input
@@ -512,13 +514,13 @@ function SurveyFlow({ sessionToken, data }) {
                     : 'your@email.com (optional)'
                 }
                 style={{ fontSize: '16px' }}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/80 placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors mb-7 text-center"
+                className={`w-full ${T.field} transition-colors mb-7 text-center`}
               />
 
               <button
                 onClick={hasIncentiveStep ? handleNext : handleSubmit}
                 disabled={submitting}
-                className="px-10 py-3.5 rounded-xl text-xs tracking-widest uppercase font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
+                className={`px-10 py-3.5 rounded-xl ${T.button} transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50`}
                 style={{ background: accentColor, color: buttonTextColor }}
               >
                 {submitting ? 'Sending…' : hasIncentiveStep ? 'Next →' : 'Submit'}
@@ -527,7 +529,7 @@ function SurveyFlow({ sessionToken, data }) {
               <button
                 onClick={hasIncentiveStep ? handleNext : handleSubmit}
                 disabled={submitting}
-                className="mt-3 text-xs text-white/20 hover:text-white/40 transition-colors tracking-wide"
+                className={`mt-3 text-xs ${T.skip} transition-colors tracking-wide`}
               >
                 Skip
               </button>
@@ -543,10 +545,10 @@ function SurveyFlow({ sessionToken, data }) {
               >
                 🎁
               </div>
-              <p className="text-xs tracking-widest uppercase text-white/40 mb-2 text-center">
+              <p className={`${T.smallCaps} ${T.muted} mb-2 text-center`}>
                 Enter to win
               </p>
-              <p className="font-serif text-xl text-white/90 text-center mb-6">
+              <p className={`${T.display} text-xl ${T.heading} text-center mb-6`}>
                 {incentive.prize_text}
               </p>
               <input
@@ -555,7 +557,7 @@ function SurveyFlow({ sessionToken, data }) {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="your@email.com (optional)"
                 style={{ fontSize: '16px' }}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/80 placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors mb-3 text-center"
+                className={`w-full ${T.field} transition-colors mb-3 text-center`}
               />
               <label className="flex items-center gap-2 cursor-pointer mb-8 select-none">
                 <input
@@ -564,12 +566,12 @@ function SurveyFlow({ sessionToken, data }) {
                   onChange={e => setMarketingOptIn(e.target.checked)}
                   className="rounded"
                 />
-                <span className="text-xs text-white/55">Sign me up for news and deals</span>
+                <span className={`text-xs ${T.body}`}>Sign me up for news and deals</span>
               </label>
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="px-10 py-3.5 rounded-xl text-xs tracking-widest uppercase font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
+                className={`px-10 py-3.5 rounded-xl ${T.button} transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50`}
                 style={{ background: accentColor, color: buttonTextColor }}
               >
                 {submitting ? 'Sending…' : 'Submit'}
@@ -577,7 +579,7 @@ function SurveyFlow({ sessionToken, data }) {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="mt-3 text-xs text-white/20 hover:text-white/40 transition-colors tracking-wide"
+                className={`mt-3 text-xs ${T.skip} transition-colors tracking-wide`}
               >
                 Skip
               </button>
@@ -595,19 +597,19 @@ function SurveyFlow({ sessionToken, data }) {
           >
             🎉
           </div>
-          <h2 className="font-serif text-2xl text-white/90 text-center mb-2">You won!</h2>
-          <p className="text-sm text-white/70 text-center mb-6 leading-relaxed">
+          <h2 className={`${T.display} text-2xl ${T.heading} text-center mb-2`}>You won!</h2>
+          <p className={`text-sm ${T.text} text-center mb-6 leading-relaxed`}>
             {prizeText}
           </p>
           <div
             className="w-full rounded-2xl px-5 py-6 flex flex-col items-center gap-2 mb-6"
             style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}33` }}
           >
-            <p className="text-xs tracking-widest uppercase text-white/55 mb-1">Your code</p>
-            <p className="text-4xl font-bold tracking-widest font-mono text-white">
+            <p className={`${T.smallCaps} ${T.body} mb-1`}>Your code</p>
+            <p className={`text-4xl font-bold tracking-widest font-mono ${T.bright}`}>
               {winCode}
             </p>
-            <p className="text-xs text-white/60 text-center mt-2 leading-relaxed">
+            <p className={`text-xs ${T.strong} text-center mt-2 leading-relaxed`}>
               Screenshot this screen or write it down.
               Show it to staff when you claim your prize.
             </p>
@@ -625,19 +627,19 @@ function SurveyFlow({ sessionToken, data }) {
             style={{ background: `${accentColor}20`, border: `1px solid ${accentColor}33` }}>
             {EMOJIS[Math.max(...Object.values(ratings), 1) - 1] || '✓'}
           </div>
-          <h2 className="font-serif text-2xl text-white/90 text-center mb-3">Thank you!</h2>
+          <h2 className={`${T.display} text-2xl ${T.heading} text-center mb-3`}>Thank you!</h2>
 
           <div className="flex gap-1.5 mb-5">
             {questions.map((q) => {
               const r = ratings[q.id]
               return (
                 <div key={q.id} className="w-2 h-2 rounded-full transition-colors duration-500"
-                  style={{ background: r ? accentColor : 'rgba(255,255,255,0.1)' }} />
+                  style={{ background: r ? accentColor : T.dotIdle }} />
               )
             })}
           </div>
 
-          <p className="text-sm text-white/35 text-center leading-relaxed mb-6">
+          <p className={`text-sm ${T.soft} text-center leading-relaxed mb-6`}>
             Your feedback helps us improve.
           </p>
           {review_redirect_enabled && review_redirect_url && (
@@ -649,9 +651,9 @@ function SurveyFlow({ sessionToken, data }) {
       {/* ── RATE LIMITED ── */}
       {page === 'limited' && (
         <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-white/5 border border-white/10">⏱</div>
-          <h2 className="font-serif text-xl text-white/90 text-center mb-3">Already submitted</h2>
-          <p className="text-sm text-white/70 text-center leading-relaxed">
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 ${T.tile}`}>⏱</div>
+          <h2 className={`${T.display} text-xl ${T.heading} text-center mb-3`}>Already submitted</h2>
+          <p className={`text-sm ${T.text} text-center leading-relaxed`}>
             Come back in{' '}
             <span style={{ color: accentColor }}>{cooldown} minute{cooldown !== 1 ? 's' : ''}</span>
             {' '}to rate again.
@@ -671,7 +673,7 @@ function ReviewCTA({ url, accentColor, buttonTextColor }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-xs tracking-widest uppercase font-medium transition-all duration-200 hover:-translate-y-0.5"
+      className={`w-full flex items-center justify-center gap-2 rounded-xl py-3.5 ${T.button} transition-all duration-200 hover:-translate-y-0.5`}
       style={{ background: accentColor, color: buttonTextColor }}
     >
       ⭐ Leave us a review

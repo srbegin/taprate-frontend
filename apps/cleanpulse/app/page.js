@@ -10,14 +10,14 @@ const STEPS = [
 
 export default function Home() {
   return (
-    <main className="full-screen-page flex flex-col items-center justify-center px-6 py-16 bg-[#0e0e11]">
+    <main className="full-screen-page flex flex-col items-center justify-center px-6 py-16 bg-stone-50">
       <div className="w-full max-w-xl text-center">
         <Wordmark className="text-3xl" />
 
-        <h1 className="mt-8 text-4xl sm:text-5xl font-semibold text-white tracking-tight leading-tight">
+        <h1 className="mt-8 text-4xl sm:text-5xl font-semibold text-stone-900 tracking-tight leading-tight">
           Restroom feedback that runs itself.
         </h1>
-        <p className="mt-4 text-base text-white/60 leading-relaxed">
+        <p className="mt-4 text-base text-stone-600 leading-relaxed">
           Customers tap or scan a placard, report what needs attention, and the right person hears
           about it. Nothing to configure.
         </p>
@@ -31,7 +31,7 @@ export default function Home() {
           </Link>
           <Link
             href="/auth/login"
-            className="border border-white/15 hover:border-white/30 text-white/80 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors"
+            className="border border-stone-300 hover:border-stone-400 text-stone-700 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors"
           >
             Sign in
           </Link>
@@ -39,10 +39,10 @@ export default function Home() {
 
         <ol className="mt-14 grid sm:grid-cols-3 gap-4 text-left">
           {STEPS.map((step, i) => (
-            <li key={step.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <li key={step.title} className="rounded-xl border border-stone-200 bg-white p-4">
               <p className="text-xs font-medium text-brand-soft">0{i + 1}</p>
-              <p className="mt-1 text-sm font-semibold text-white">{step.title}</p>
-              <p className="mt-1 text-sm text-white/55 leading-relaxed">{step.body}</p>
+              <p className="mt-1 text-sm font-semibold text-stone-900">{step.title}</p>
+              <p className="mt-1 text-sm text-stone-600 leading-relaxed">{step.body}</p>
             </li>
           ))}
         </ol>

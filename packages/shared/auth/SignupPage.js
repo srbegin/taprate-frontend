@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import brand from '../brand'
 import Wordmark from '../ui/Wordmark'
+import U from '../ui/theme'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -49,20 +50,20 @@ export default function SignupPage() {
 
   const field = (name, label, type = 'text', placeholder = '') => (
     <div>
-      <label className="block text-xs font-medium text-white/50 mb-1.5">{label}</label>
+      <label className={`block text-xs font-medium ${U.label} mb-1.5`}>{label}</label>
       <input
         type={type}
         required
         value={form[name]}
         onChange={(e) => setForm({ ...form, [name]: e.target.value })}
-        className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-brand-ring focus:ring-1 focus:ring-brand-ring transition-colors"
+        className={`w-full rounded-lg ${U.input} px-3 py-2.5 text-sm ${U.inputText} outline-none focus:border-brand-ring focus:ring-1 focus:ring-brand-ring transition-colors`}
         placeholder={placeholder}
       />
     </div>
   )
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0e0e11] px-4 py-12">
+    <div className={`min-h-screen flex items-center justify-center ${U.page} px-4 py-12`}>
       <div className="w-full max-w-sm">
 
         {/* Logo / wordmark */}
@@ -70,9 +71,9 @@ export default function SignupPage() {
           <Wordmark />
         </div>
 
-        <div className="bg-[#1a1a1f] border border-white/10 rounded-2xl p-8">
-          <h1 className="text-lg font-semibold text-white mb-1">Create your account</h1>
-          <p className="text-sm text-white/40 mb-6">Set up your organization and get started</p>
+        <div className={`${U.card} rounded-2xl p-8`}>
+          <h1 className={`text-lg font-semibold ${U.title} mb-1`}>Create your account</h1>
+          <p className={`text-sm ${U.sub} mb-6`}>Set up your organization and get started</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -85,7 +86,7 @@ export default function SignupPage() {
             {field('invite_code', 'Invite code',       'text',     'Enter your invite code')}
 
             {error && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+              <p className={`text-xs ${U.error} rounded-lg px-3 py-2`}>
                 {error}
               </p>
             )}
@@ -99,7 +100,7 @@ export default function SignupPage() {
             </button>
           </form>
           {brand.hasLegalPages && (
-            <p className="text-xs text-zinc-500 text-center mt-4">
+            <p className={`text-xs ${U.legal} text-center mt-4`}>
               By creating an account, you agree to our{' '}
               <a href="/terms" className="text-brand-soft hover:text-brand-softer">Terms</a>{' '}
               and{' '}
@@ -108,7 +109,7 @@ export default function SignupPage() {
           )}
         </div>
 
-        <p className="mt-4 text-center text-xs text-white/30">
+        <p className={`mt-4 text-center text-xs ${U.footer}`}>
           Already have an account?{' '}
           <Link href="/auth/login" className="text-brand-soft hover:text-brand-softer transition-colors">
             Sign in

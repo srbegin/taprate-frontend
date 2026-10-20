@@ -108,26 +108,26 @@ export default function PairingPanel({ placard: initialPlacard, tagId }) {
 
   return (
     <Shell eyebrow="Staff · Placard pairing">
-      <p className="font-mono text-3xl font-semibold text-white tracking-wider">
+      <p className="font-mono text-3xl font-semibold text-stone-900 tracking-wider">
         {code || 'NFC tag'}
       </p>
-      {!code && tagId && <p className="mt-1 font-mono text-xs text-white/40 break-all">{tagId}</p>}
+      {!code && tagId && <p className="mt-1 font-mono text-xs text-stone-500 break-all">{tagId}</p>}
 
       <div className="mt-5 text-sm leading-relaxed">
-        {phase === 'loading' && <p className="text-white/50">Registering…</p>}
+        {phase === 'loading' && <p className="text-stone-500">Registering…</p>}
 
         {phase === 'waiting' && (
           <>
-            <p className="text-white">
+            <p className="text-stone-900">
               {waitingFor === 'tag'
                 ? 'Now tap the NFC tag on this sign with your phone.'
                 : 'Tag ready. Now scan the QR code on its sign.'}
             </p>
-            <p className="mt-2 flex items-center gap-2 text-white/40">
+            <p className="mt-2 flex items-center gap-2 text-stone-500">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-soft animate-pulse" />
               Waiting — this page updates when it’s done.
             </p>
-            <button onClick={cancel} className="mt-5 text-xs text-white/40 hover:text-white/70 transition-colors">
+            <button onClick={cancel} className="mt-5 text-xs text-stone-500 hover:text-stone-800 transition-colors">
               Cancel
             </button>
           </>
@@ -136,14 +136,14 @@ export default function PairingPanel({ placard: initialPlacard, tagId }) {
         {phase === 'paired' && (
           <>
             <p className="text-brand-soft font-medium">✓ Paired</p>
-            <p className="mt-1 text-white/50">
+            <p className="mt-1 text-stone-500">
               {code ? `${code} ↔ ` : ''}{pairedTag ? `tag ${String(pairedTag).slice(0, 8)}…` : 'NFC tag'}
               {placard?.claimed && ' · already claimed by a business'}
             </p>
-            <p className="mt-4 text-white/60">Scan the next placard’s QR code to continue.</p>
+            <p className="mt-4 text-stone-600">Scan the next placard’s QR code to continue.</p>
             {placard && (
               <div className="mt-5 flex items-center gap-4 text-xs">
-                <button onClick={unpair} className="text-white/40 hover:text-red-400 transition-colors">
+                <button onClick={unpair} className="text-stone-500 hover:text-red-600 transition-colors">
                   Unpair
                 </button>
                 {!placard.claimed && (
@@ -158,7 +158,7 @@ export default function PairingPanel({ placard: initialPlacard, tagId }) {
 
         {phase === 'error' && (
           <>
-            <p className="text-red-400">{message}</p>
+            <p className="text-red-600">{message}</p>
             <button onClick={retry} className="mt-4 text-xs text-brand-soft hover:text-brand-softer transition-colors">
               Try again
             </button>
