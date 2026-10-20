@@ -89,7 +89,7 @@ function EmojiScale({ selected, onSelect }) {
       {EMOJIS.map((emoji, i) => (
         <button key={i} onClick={() => onSelect(i + 1)}
           className={`flex flex-col items-center gap-1 transition-all duration-200 ${
-            selected === i + 1 ? 'scale-125' : 'opacity-40 hover:opacity-70 hover:scale-110'
+            selected === i + 1 ? 'scale-125' : `${T.emojiIdle} hover:scale-110`
           }`}
           aria-label={labels[i]}
         >
