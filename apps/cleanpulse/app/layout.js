@@ -9,6 +9,7 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata = {
+  metadataBase: new URL('https://cleanpulse.app'),
   title: 'Cleanpulse',
   description: 'Restroom feedback and alerts — customers tap or scan, your team knows what needs attention.',
 }

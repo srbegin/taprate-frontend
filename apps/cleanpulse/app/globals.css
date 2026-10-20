@@ -37,3 +37,15 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
+
+/* Landing page: gentle bob on the hero alert card. */
+@keyframes landing-float {
+  /* transform, not translate — Tailwind 4's translate-* utilities use the translate property */
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.landing-float { animation: landing-float 5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .landing-float { animation: none; }
+  html { scroll-behavior: auto; }
+}
