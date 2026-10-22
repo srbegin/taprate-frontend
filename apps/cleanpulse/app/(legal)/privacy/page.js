@@ -16,11 +16,12 @@ export default function PrivacyPage() {
       <LegalHeader title="Privacy Policy" effective={EFFECTIVE_DATE} />
 
       <p>
-        Cleanpulse (“we,” “us,” or “our”) helps businesses collect restroom feedback: customers tap or scan a
+        Cleanpulse helps businesses collect restroom feedback: customers tap or scan a
         placard to rate a restroom or report a problem, and the business sees the results and gets alerts. This
         policy explains what information we collect, how we use it, and the choices you have. It covers our
         website at cleanpulse.app, the feedback pages that open from our placards, and the Cleanpulse dashboard
-        (together, the “Service”).
+        (together, the “Service”). Cleanpulse is provided by Beginnings LLC, a Rhode Island limited liability
+        company (“Cleanpulse,” “we,” “us,” or “our”).
       </p>
 
       <Section title="1. Information we collect">
@@ -150,7 +151,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="13. Contact us">
-        <p>Questions about this policy or your information? Email <Email />.</p>
+        <p>Questions about this policy or your information? Email <Email />. Cleanpulse is a product of Beginnings LLC, Rhode Island.</p>
       </Section>
     </article>
   )

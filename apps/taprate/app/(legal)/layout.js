@@ -28,7 +28,7 @@ export default function LegalLayout({ children }) {
 
       <footer className="border-t border-zinc-800/60 mt-16">
         <div className="max-w-3xl mx-auto px-6 py-6 text-sm text-zinc-500 flex flex-col sm:flex-row gap-2 sm:gap-6 sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} TapRate. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Beginnings LLC. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/terms" className="hover:text-zinc-300 transition-colors">
               Terms of Service

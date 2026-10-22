@@ -18,7 +18,7 @@ export default function SiteFooter() {
           <Link href="/terms" className="hover:text-stone-900">Terms</Link>
           <Link href="/privacy" className="hover:text-stone-900">Privacy</Link>
           <Link href="/auth/login" className="hover:text-stone-900">Sign in</Link>
-          <span>© {new Date().getFullYear()} Cleanpulse</span>
+          <span>© {new Date().getFullYear()} Beginnings LLC</span>
         </div>
       </div>
     </footer>

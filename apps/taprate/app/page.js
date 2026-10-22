@@ -261,7 +261,7 @@ function Footer() {
         <span className="text-sm font-semibold text-white/60">TapRate</span>
       </div>
       <p className="text-xs text-white/25">
-        © {new Date().getFullYear()} TapRate. All rights reserved.
+        © {new Date().getFullYear()} Beginnings LLC. All rights reserved.
       </p>
     </footer>
   )

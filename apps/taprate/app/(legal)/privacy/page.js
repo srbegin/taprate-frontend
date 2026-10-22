@@ -10,13 +10,14 @@ export default function PrivacyPage() {
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
           Privacy Policy
         </h1>
-        <p className="text-sm text-zinc-500">Effective Date: May 29, 2026</p>
+        <p className="text-sm text-zinc-500">Effective Date: May 29, 2026 · Last updated: October 22, 2026</p>
       </header>
 
       <section className="space-y-4 text-zinc-300 leading-relaxed">
         <p>
-          This Privacy Policy describes how TapRate (&quot;we,&quot; &quot;us,&quot; or
-          &quot;our&quot;) collects, uses, and shares information when you use our service.
+          This Privacy Policy describes how Beginnings LLC, a Rhode Island limited liability company
+          doing business as TapRate (&quot;TapRate,&quot; &quot;we,&quot; &quot;us,&quot; or
+          &quot;our&quot;), collects, uses, and shares information when you use our service.
         </p>
       </section>
 

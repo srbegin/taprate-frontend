@@ -10,7 +10,7 @@ export default function TermsPage() {
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
           Terms of Service
         </h1>
-        <p className="text-sm text-zinc-500">Effective Date: May 29, 2026</p>
+        <p className="text-sm text-zinc-500">Effective Date: May 29, 2026 · Last updated: October 22, 2026</p>
       </header>
 
       <section className="space-y-4 text-zinc-300 leading-relaxed">
@@ -18,7 +18,8 @@ export default function TermsPage() {
           Welcome to TapRate. These Terms of Service (&quot;Terms&quot;) govern your access to
           and use of the TapRate platform, including our website, web applications, NFC-based
           survey tools, and related services (collectively, the &quot;Service&quot;) provided
-          by TapRate (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
+          by Beginnings LLC, a Rhode Island limited liability company, doing business as TapRate
+          (&quot;TapRate,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
         </p>
         <p>
           By creating an account or using the Service, you agree to these Terms. If you do
@@ -107,7 +108,7 @@ export default function TermsPage() {
       <Section title="6. Intellectual Property">
         <p>
           The Service, including all software, designs, and content provided by TapRate, is
-          owned by TapRate and protected by intellectual property laws. We grant you a
+          owned by Beginnings LLC and protected by intellectual property laws. We grant you a
           limited, non-exclusive, non-transferable license to use the Service in accordance
           with these Terms.
         </p>

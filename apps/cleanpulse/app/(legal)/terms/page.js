@@ -20,7 +20,8 @@ export default function TermsPage() {
         <p>
           These Terms of Service (“Terms”) govern your use of Cleanpulse, including our website at cleanpulse.app,
           the Cleanpulse dashboard, the feedback pages that open from our placards, and the placards themselves
-          (together, the “Service”), provided by Cleanpulse (“we,” “us,” or “our”).
+          (together, the “Service”). The Service is provided by Beginnings LLC, a Rhode Island limited liability
+          company, doing business as Cleanpulse (“Cleanpulse,” “we,” “us,” or “our”).
         </p>
         <p>
           By creating an account or using the Service, you agree to these Terms. If you’re using the Service on
@@ -122,7 +123,7 @@ export default function TermsPage() {
 
       <Section title="8. Our intellectual property">
         <p>
-          The Service, including its software, designs and content, is owned by Cleanpulse and protected by
+          The Service, including its software, designs and content, is owned by Beginnings LLC and protected by
           intellectual property laws. We grant you a limited, non-exclusive, non-transferable license to use the
           Service under these Terms. You may not copy, modify, distribute, sell or lease any part of the Service
           without our written permission.
@@ -139,7 +140,7 @@ export default function TermsPage() {
 
       <Section title="10. Ending your use">
         <p>
-          You can stop using the Service and close your account at any time by contacting us. We may suspend or
+          You can stop using the Service at any time, and close your account by emailing us at <Email />. We may suspend or
           close your account if you break these Terms, don’t pay fees that are due, or use the Service in a way
           that harms us or others. When an account is closed, access ends and we delete its data as described in
           our Privacy Policy.
@@ -183,7 +184,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="15. Contact">
-        <p>Questions about these Terms? Email <Email />.</p>
+        <p>Questions about these Terms? Email <Email />. Cleanpulse is a product of Beginnings LLC, Rhode Island.</p>
       </Section>
     </article>
   )
