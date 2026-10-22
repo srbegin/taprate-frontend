@@ -3,11 +3,11 @@ import Link from 'next/link'
 import {
   BellRing, CheckCircle2, ClipboardList, LayoutDashboard, PlugZap, ScanLine, Smartphone, Sparkles, StickyNote, Wrench,
 } from 'lucide-react'
-import Wordmark from '@platform/shared/ui/Wordmark'
 import SiteHeader from '@/components/landing/SiteHeader'
 import HeroVisual from '@/components/landing/HeroVisual'
 import TodayPreview from '@/components/landing/TodayPreview'
 import EarlyAccessForm from '@/components/landing/EarlyAccessForm'
+import SiteFooter from '@/components/landing/SiteFooter'
 
 const DESCRIPTION =
   'Customers tap or scan a placard to rate the restroom or report what’s out. You get one clear alert, fix it, and mark it done.'
@@ -23,8 +23,6 @@ export const metadata = {
     type: 'website',
   },
 }
-
-const HELLO_EMAIL = 'hello@cleanpulse.app'
 
 const STEPS = [
   { icon: StickyNote, title: 'Put up a placard',  body: 'Placards arrive ready to go — one per restroom. Nothing to plug in or configure.' },
@@ -223,19 +221,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-stone-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col md:flex-row gap-6 md:items-center justify-between text-sm text-stone-500">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
-            <Wordmark className="text-base" />
-            <span>Restroom feedback that runs itself.</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 whitespace-nowrap">
-            <a href={`mailto:${HELLO_EMAIL}`} className="hover:text-stone-900">{HELLO_EMAIL}</a>
-            <Link href="/auth/login" className="hover:text-stone-900">Sign in</Link>
-            <span>© {new Date().getFullYear()} Cleanpulse</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

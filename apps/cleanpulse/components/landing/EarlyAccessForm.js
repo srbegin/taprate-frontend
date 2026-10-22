@@ -101,7 +101,10 @@ export default function EarlyAccessForm() {
         className="w-full bg-brand hover:bg-brand-hover text-white rounded-lg py-3 text-sm font-semibold transition-colors disabled:opacity-50">
         {status === 'sending' ? 'Sending…' : 'Request early access'}
       </button>
-      <p className="text-xs text-stone-500 text-center">We’ll only use this to get in touch about Cleanpulse.</p>
+      <p className="text-xs text-stone-500 text-center">
+        We’ll only use this to get in touch about Cleanpulse. See our{' '}
+        <a href="/privacy" className="underline underline-offset-2 hover:text-stone-800">privacy policy</a>.
+      </p>
     </form>
   )
 }

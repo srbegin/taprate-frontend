@@ -7,9 +7,9 @@ import { useSession } from 'next-auth/react'
 import Wordmark from '@platform/shared/ui/Wordmark'
 
 const LINKS = [
-  { href: '#how-it-works', label: 'How it works' },
-  { href: '#features',     label: 'Features' },
-  { href: '#faq',          label: 'FAQ' },
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#features',     label: 'Features' },
+  { href: '/#faq',          label: 'FAQ' },
 ]
 
 export default function SiteHeader() {
@@ -21,17 +21,17 @@ export default function SiteHeader() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-8">
         <Link href="/" aria-label="Cleanpulse home"><Wordmark className="text-xl" /></Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-stone-600">
-          {LINKS.map(l => <a key={l.href} href={l.href} className="hover:text-stone-900 transition-colors">{l.label}</a>)}
+          {LINKS.map(l => <Link key={l.href} href={l.href} className="hover:text-stone-900 transition-colors">{l.label}</Link>)}
         </nav>
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
           <Link href={signedIn ? '/dashboard' : '/auth/login'}
             className="text-sm font-medium text-stone-700 hover:text-stone-900 px-2 py-1.5">
             {signedIn ? 'Dashboard' : 'Sign in'}
           </Link>
-          <a href="#early-access"
+          <Link href="/#early-access"
             className="bg-brand hover:bg-brand-hover text-white rounded-lg px-3.5 sm:px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap">
             Get early access
-          </a>
+          </Link>
         </div>
       </div>
     </header>
