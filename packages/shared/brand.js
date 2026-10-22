@@ -9,7 +9,7 @@
 const BRANDS = {
   taprate:    { product: 'taprate',    name: 'TapRate',    wordmark: ['Tap', 'Rate'],    hasLegalPages: true,  surveyTheme: 'dark',  uiTheme: 'dark' },
   // Cleanpulse legal pages don't exist yet — Terms/Privacy links stay hidden until they do.
-  cleanpulse: { product: 'cleanpulse', name: 'Cleanpulse', wordmark: ['Clean', 'pulse'], hasLegalPages: false, surveyTheme: 'light', uiTheme: 'light' },
+  cleanpulse: { product: 'cleanpulse', name: 'Cleanpulse', wordmark: ['Clean', 'pulse'], hasLegalPages: true,  surveyTheme: 'light', uiTheme: 'light' },
 }
 
 const brand = BRANDS[process.env.NEXT_PUBLIC_PRODUCT] ?? BRANDS.taprate

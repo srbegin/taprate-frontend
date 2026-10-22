@@ -15,6 +15,7 @@ export default function SiteFooter() {
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 whitespace-nowrap">
           <a href={`mailto:${HELLO_EMAIL}`} className="hover:text-stone-900">{HELLO_EMAIL}</a>
+          <Link href="/terms" className="hover:text-stone-900">Terms</Link>
           <Link href="/privacy" className="hover:text-stone-900">Privacy</Link>
           <Link href="/auth/login" className="hover:text-stone-900">Sign in</Link>
           <span>© {new Date().getFullYear()} Cleanpulse</span>

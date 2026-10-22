@@ -1,4 +1,4 @@
-// Legal pages (privacy; terms to come) share the public site's header and footer.
+// Legal pages (/privacy, /terms) share the public site's header and footer.
 import SiteHeader from '@/components/landing/SiteHeader'
 import SiteFooter from '@/components/landing/SiteFooter'
 

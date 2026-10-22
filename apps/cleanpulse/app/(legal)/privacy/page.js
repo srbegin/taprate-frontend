@@ -1,7 +1,7 @@
 // Cleanpulse Privacy Policy. Written to match what the product actually
 // collects — update it when data practices change (new fields, processors,
 // analytics, etc.) and bump EFFECTIVE_DATE.
-import { HELLO_EMAIL } from '@/components/landing/SiteFooter'
+import { Email, LegalHeader, List, Section, Term } from '@/components/landing/LegalParts'
 
 export const metadata = {
   title: 'Privacy Policy — Cleanpulse',
@@ -10,30 +10,10 @@ export const metadata = {
 
 const EFFECTIVE_DATE = 'October 22, 2026'
 
-function Section({ title, children }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="text-xl font-semibold tracking-tight text-stone-900">{title}</h2>
-      <div className="space-y-3">{children}</div>
-    </section>
-  )
-}
-
-function Term({ children }) {
-  return <span className="font-medium text-stone-900">{children}</span>
-}
-
-function Email() {
-  return <a href={`mailto:${HELLO_EMAIL}`} className="text-brand-soft hover:text-brand-softer underline underline-offset-2">{HELLO_EMAIL}</a>
-}
-
 export default function PrivacyPage() {
   return (
     <article className="space-y-10 text-stone-700 leading-relaxed">
-      <header className="space-y-3 pb-6 border-b border-stone-200">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-stone-900">Privacy Policy</h1>
-        <p className="text-sm text-stone-500">Effective {EFFECTIVE_DATE}</p>
-      </header>
+      <LegalHeader title="Privacy Policy" effective={EFFECTIVE_DATE} />
 
       <p>
         Cleanpulse (“we,” “us,” or “our”) helps businesses collect restroom feedback: customers tap or scan a
@@ -66,14 +46,14 @@ export default function PrivacyPage() {
 
       <Section title="2. How we use information">
         <p>We use the information we collect to:</p>
-        <ul className="list-disc pl-6 space-y-1.5">
+        <List>
           <li>Provide the Service, including showing feedback to the business and sending it alerts</li>
           <li>Create and manage accounts, including sign-in and password resets</li>
           <li>Respond to inquiries and early-access requests</li>
           <li>Prevent spam, fraud and abuse, and keep the Service secure</li>
           <li>Maintain and improve the Service</li>
           <li>Comply with legal obligations</li>
-        </ul>
+        </List>
         <p>We do not sell personal information, and we do not use it for advertising.</p>
       </Section>
 
@@ -88,14 +68,14 @@ export default function PrivacyPage() {
 
       <Section title="4. Service providers">
         <p>We use these companies to run Cleanpulse. Each receives only the information it needs to do its job:</p>
-        <ul className="list-disc pl-6 space-y-1.5">
+        <List>
           <li><Term>Vercel</Term> — website hosting</li>
           <li><Term>Fly.io</Term> — application hosting</li>
           <li><Term>Neon</Term> — database hosting</li>
           <li><Term>Upstash</Term> — caching</li>
           <li><Term>Resend</Term> — sending and receiving email</li>
           <li><Term>Stripe</Term> — payment processing</li>
-        </ul>
+        </List>
         <p>
           Cleanpulse shares accounts and infrastructure with our sister product, TapRate. If your business uses
           both, the same account and business details are used for each.
@@ -104,12 +84,12 @@ export default function PrivacyPage() {
 
       <Section title="5. When we share information">
         <p>Beyond the service providers above, we share information only:</p>
-        <ul className="list-disc pl-6 space-y-1.5">
+        <List>
           <li>With the business that owns a placard, for feedback left on it</li>
           <li>When required by law, regulation or valid legal process</li>
           <li>To protect the rights, safety or property of Cleanpulse, our users or others</li>
           <li>As part of a merger, acquisition or sale of assets, with notice to affected users</li>
-        </ul>
+        </List>
       </Section>
 
       <Section title="6. How long we keep information">
@@ -138,13 +118,13 @@ export default function PrivacyPage() {
 
       <Section title="9. Your choices and rights">
         <p>Depending on where you live, you may have the right to:</p>
-        <ul className="list-disc pl-6 space-y-1.5">
+        <List>
           <li>Access the personal information we hold about you</li>
           <li>Correct inaccurate information</li>
           <li>Delete your information</li>
           <li>Object to or restrict certain processing</li>
           <li>Receive a copy of your information in a portable format</li>
-        </ul>
+        </List>
         <p>To make a request, email <Email />. We won’t discriminate against you for exercising these rights.</p>
       </Section>
 

@@ -11,6 +11,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata = {
   metadataBase: new URL('https://cleanpulse.app'),
   title: 'Cleanpulse',
+  twitter: { card: 'summary_large_image' },   // large preview on X; image comes from app/opengraph-image.js
   description: 'Restroom feedback and alerts — customers tap or scan, your team knows what needs attention.',
 }
 
